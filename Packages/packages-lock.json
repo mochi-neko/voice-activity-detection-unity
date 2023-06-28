@@ -14,6 +14,20 @@
       "dependencies": {},
       "hash": "d210e3d76adc0cce77f4ad2af1ade88dad6b1d5a"
     },
+    "com.mochineko.simple-audio-codec-unity": {
+      "version": "https://github.com/mochi-neko/simple-audio-codec-unity.git?path=/Assets/Mochineko/SimpleAudioCodec#0.2.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "fb76f048a78ef9fa4e0d00df6f184d1b7a64042b"
+    },
+    "com.naudio.core": {
+      "version": "https://github.com/mochi-neko/simple-audio-codec-unity.git?path=/Assets/NAudio/NAudio.Core#0.2.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "fb76f048a78ef9fa4e0d00df6f184d1b7a64042b"
+    },
     "com.neuecc.unirx": {
       "version": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
       "depth": 0,
