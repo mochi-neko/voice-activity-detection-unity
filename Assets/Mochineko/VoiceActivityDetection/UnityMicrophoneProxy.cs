@@ -14,11 +14,6 @@ namespace Mochineko.VoiceActivityDetection
             this.deviceName = deviceName;
             // NOTE: Because UnityEngine.Microphone updates only latest AudioClip instance, if you want to use multiple recorder, you should use this proxy.
             this.AudioClip = Microphone.Start(this.deviceName, loop:true, loopLengthSeconds, frequency);
-
-            while (GetSamplePosition() < 0)
-            {
-                // NOTE: Wait to setup microphone device recording...
-            }
         }
         
         public void Dispose()

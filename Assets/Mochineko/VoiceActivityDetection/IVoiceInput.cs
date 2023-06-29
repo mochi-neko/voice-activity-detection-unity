@@ -3,7 +3,7 @@ using System;
 
 namespace Mochineko.VoiceActivityDetection
 {
-    interface IMicrophoneReader : IDisposable
+    public interface IVoiceInput : IDisposable
     {
         void Update();
         IObservable<(float[] buffer, int lenght)> OnBufferRead { get; }
