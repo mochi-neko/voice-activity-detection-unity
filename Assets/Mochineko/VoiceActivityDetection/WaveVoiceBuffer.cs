@@ -7,6 +7,9 @@ using NAudio.Wave;
 
 namespace Mochineko.VoiceActivityDetection
 {
+    /// <summary>
+    /// A voice buffer that writes to a wave file.
+    /// </summary>
     public sealed class WaveVoiceBuffer : IVoiceBuffer
     {
         private readonly WaveFileWriter writer;

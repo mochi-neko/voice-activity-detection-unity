@@ -9,7 +9,11 @@ using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
 {
-    public sealed class SimpleVoiceActivityDetection : IVoiceActivityDetection
+    /// <summary>
+    /// A simple implementation of <see cref="IVoiceActivityDetector"/>.
+    /// Detects activity by voice volume(root mean square) and false interval. 
+    /// </summary>
+    public sealed class SimpleVoiceActivityDetector : IVoiceActivityDetector
     {
         private readonly IVoiceSource source;
         private readonly IVoiceBuffer buffer;
@@ -23,7 +27,7 @@ namespace Mochineko.VoiceActivityDetection
         private readonly ReactiveProperty<bool> isActive = new();
         public IReadOnlyReactiveProperty<bool> IsActive => isActive;
 
-        public SimpleVoiceActivityDetection(
+        public SimpleVoiceActivityDetector(
             IVoiceSource source,
             IVoiceBuffer buffer,
             float volumeThreshold,
@@ -35,8 +39,8 @@ namespace Mochineko.VoiceActivityDetection
             this.falseIntervalSeconds = falseIntervalSeconds;
 
             disposable = this.source
-                .OnBufferRead
-                .Subscribe(async value => await OnBufferReadAsync(value));
+                .OnSegmentRead
+                .Subscribe(async value => await OnSegmentReadAsync(value));
             
             stopwatch.Start();
         }
@@ -54,9 +58,9 @@ namespace Mochineko.VoiceActivityDetection
             source.Update();
         }
 
-        private async UniTask OnBufferReadAsync(VoiceSegment voiceSegment)
+        private async UniTask OnSegmentReadAsync(VoiceSegment segment)
         {
-            if (!IsActiveVoice(voiceSegment))
+            if (!IsActiveVoice(segment))
             {
                 if (stopwatch.ElapsedMilliseconds > falseIntervalSeconds * 1000)
                 {
@@ -69,15 +73,15 @@ namespace Mochineko.VoiceActivityDetection
             
             stopwatch.Restart();
             
-            await this.buffer.BufferAsync(voiceSegment, cancellationTokenSource.Token);
+            await this.buffer.BufferAsync(segment, cancellationTokenSource.Token);
             
             Log.Debug("[VAD] Active: true");
             isActive.Value = true;
         }
 
-        private bool IsActiveVoice(VoiceSegment voiceSegment)
+        private bool IsActiveVoice(VoiceSegment segment)
         {
-            var volume = CalculateVolume(voiceSegment.buffer.AsSpan(0, voiceSegment.length));
+            var volume = CalculateVolume(segment.buffer.AsSpan(0, segment.length));
             
             Log.Verbose("[VAD] Volume: {0}", volume.ToString("F4"));
             

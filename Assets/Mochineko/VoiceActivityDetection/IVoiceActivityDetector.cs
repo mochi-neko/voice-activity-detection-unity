@@ -1,20 +1,21 @@
 ﻿#nullable enable
 using System;
+using UniRx;
 
 namespace Mochineko.VoiceActivityDetection
 {
     /// <summary>
-    /// Source of voice data.
+    /// Detects voice activity.
     /// </summary>
-    public interface IVoiceSource : IDisposable
+    public interface IVoiceActivityDetector : IDisposable
     {
         /// <summary>
-        /// Called when a segment is read.
+        /// Current voice activity.
         /// </summary>
-        IObservable<VoiceSegment> OnSegmentRead { get; }
+        IReadOnlyReactiveProperty<bool> IsActive { get; }
         
         /// <summary>
-        /// Updates the state of the source.
+        /// Updates the state of the detection.
         /// </summary>
         void Update();
     }

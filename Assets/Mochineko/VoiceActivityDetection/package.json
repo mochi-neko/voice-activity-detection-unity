@@ -1,0 +1,22 @@
+﻿{
+  "name": "com.mochineko.voice-activity-detection",
+  "version": "0.1.0",
+  "displayName": "Voice Activity Detection",
+  "description": "A voice activity detection library for Unity.",
+  "unity": "2022.3",
+  "author": {
+    "name": "Mochineko",
+    "email": "t.o.e.4315@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:mochi-neko/voice-activity-detection-unity.git"
+  },
+  "dependencies": {
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+    "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
+    "com.mochineko.simple-audio-codec-unity": "https://github.com/mochi-neko/simple-audio-codec-unity.git?path=/Assets/Mochineko/SimpleAudioCodec#0.2.0",
+    "com.naudio.core": "https://github.com/mochi-neko/simple-audio-codec-unity.git?path=/Assets/NAudio/NAudio.Core#0.2.0",
+    "com.unity.logging": "1.0.11"
+  }
+}

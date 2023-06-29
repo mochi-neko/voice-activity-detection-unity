@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
 {
+    /// <summary>
+    /// A proxy of UnityEngine.Microphone.
+    /// </summary>
     public sealed class UnityMicrophoneProxy : IDisposable
     {
         private readonly string? deviceName;

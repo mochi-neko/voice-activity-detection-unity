@@ -4,6 +4,9 @@ using Cysharp.Threading.Tasks;
 
 namespace Mochineko.VoiceActivityDetection
 {
+    /// <summary>
+    /// A null object of <see cref="IVoiceBuffer"/>.
+    /// </summary>
     public sealed class NullVoiceBuffer : IVoiceBuffer
     {
         public void Dispose()

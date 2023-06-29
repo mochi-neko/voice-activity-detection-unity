@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection.Samples
 {
+    /// <summary>
+    /// A sample of voice activity detection as a component.
+    /// </summary>
     internal sealed class VoiceActivityDetectionSample : MonoBehaviour
     {
         [SerializeField]
@@ -12,11 +15,11 @@ namespace Mochineko.VoiceActivityDetection.Samples
         [SerializeField]
         private float intervalThresholdSeconds = 1f;
 
-        private SimpleVoiceActivityDetection? vad;
+        private IVoiceActivityDetector? vad;
 
         private void Start()
         {
-            vad = new SimpleVoiceActivityDetection(
+            vad = new SimpleVoiceActivityDetector(
                 source: new UnityMicrophoneSource(),
                 buffer: new NullVoiceBuffer(),
                 volumeThreshold,
