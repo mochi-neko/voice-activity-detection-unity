@@ -9,6 +9,8 @@ namespace Mochineko.VoiceActivityDetection.Samples
     {
         [SerializeField]
         private float volumeThreshold = 0.01f;
+        [SerializeField]
+        private float intervalThresholdSeconds = 1f;
 
         private SimpleVoiceActivityDetection? vad;
 
@@ -17,7 +19,8 @@ namespace Mochineko.VoiceActivityDetection.Samples
             vad = new SimpleVoiceActivityDetection(
                 input: new UnityMicrophoneInput(),
                 output: new NullVoiceOutput(),
-                volumeThreshold);
+                volumeThreshold,
+                intervalThresholdSeconds);
 
             vad
                 .IsActive
