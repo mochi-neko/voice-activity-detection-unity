@@ -9,4 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2023-XX-XX
 
-WIP
+### Added
+- Voice source from `UnityEngine.Microphone`.
+- Null Voice buffer.
+- Wave file Voice buffer.
+- Simple (voice volume and false interval) VAD logic.

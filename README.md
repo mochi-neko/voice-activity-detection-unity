@@ -1,16 +1,28 @@
 # voice-activity-detection-unity
 A voice activity detection library for Unity.
 
-WIP
+## Features
 
-# How to import by UnityPackageManager
+- Sources
+  - [x] `UnityEngine.Microphone`
+  - [ ] `AudioSource`
+  - [ ] Native microphone
+- Buffers
+  - [x] Null
+  - [x] Wave file (by [simple-audio-codec-unity](https://github.com/mochi-neko/simple-audio-codec-unity) / [NAudio](https://github.com/naudio/NAudio))
+  - [ ] AudioClip
+- Voice activity detection logics
+  - [x] Simple (voice volume and false interval)
+  - [ ] WebRTC VAD
+
+## How to import by UnityPackageManager
 
 Add following dependencies to your `/Packages/manifest.json`.
 
 ```json
 {
     "dependencies": {
-        "XXX": "XXX",
+        "com.mochineko.voice-activity-detection": "https://github.com/mochi-neko/voice-activity-detection-unity?path=/Assets/Mochineko/VoiceActivityDetection#0.1.0",
         ...
     }
 }
