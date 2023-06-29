@@ -4,13 +4,13 @@ using Cysharp.Threading.Tasks;
 
 namespace Mochineko.VoiceActivityDetection
 {
-    public sealed class NullVoiceOutput : IVoiceOutput
+    public sealed class NullVoiceBuffer : IVoiceBuffer
     {
         public void Dispose()
         {
         }
 
-        public UniTask WriteAsync(float[] buffer, int count, CancellationToken cancellationToken)
+        public UniTask BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
         {
             return UniTask.CompletedTask;
         }

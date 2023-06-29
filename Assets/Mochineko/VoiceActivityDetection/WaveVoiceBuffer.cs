@@ -7,12 +7,12 @@ using NAudio.Wave;
 
 namespace Mochineko.VoiceActivityDetection
 {
-    public sealed class WaveVoiceOutput : IVoiceOutput
+    public sealed class WaveVoiceBuffer : IVoiceBuffer
     {
         private readonly WaveFileWriter writer;
         private int offset;
         
-        public WaveVoiceOutput(
+        public WaveVoiceBuffer(
             Stream output,
             bool ignoreDisposeStream = false,
             int samplingRate = 44100,
@@ -34,14 +34,14 @@ namespace Mochineko.VoiceActivityDetection
             writer.Dispose();
         }
         
-        public async UniTask WriteAsync(float[] buffer, int count, CancellationToken cancellationToken)
+        public async UniTask BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             await UniTask.SwitchToThreadPool();
             
-            writer.WriteSamples(buffer, offset, count);
-            offset += count;
+            writer.WriteSamples(segment.buffer, offset, segment.length);
+            offset += segment.length;
 
             await UniTask.SwitchToMainThread(cancellationToken);
         }

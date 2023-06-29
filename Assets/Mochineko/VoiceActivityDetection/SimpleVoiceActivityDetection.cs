@@ -11,30 +11,30 @@ namespace Mochineko.VoiceActivityDetection
 {
     public sealed class SimpleVoiceActivityDetection : IVoiceActivityDetection
     {
-        private readonly IVoiceInput input;
-        private readonly IVoiceOutput output;
+        private readonly IVoiceSource source;
+        private readonly IVoiceBuffer buffer;
         private readonly IDisposable disposable;
         private readonly CancellationTokenSource cancellationTokenSource = new();
         private readonly Stopwatch stopwatch = new();
         
         private readonly float volumeThreshold;
-        private readonly float intervalThresholdSeconds;
+        private readonly float falseIntervalSeconds;
 
         private readonly ReactiveProperty<bool> isActive = new();
         public IReadOnlyReactiveProperty<bool> IsActive => isActive;
 
         public SimpleVoiceActivityDetection(
-            IVoiceInput input,
-            IVoiceOutput output,
+            IVoiceSource source,
+            IVoiceBuffer buffer,
             float volumeThreshold,
-            float intervalThresholdSeconds)
+            float falseIntervalSeconds)
         {
-            this.input = input;
-            this.output = output;
+            this.source = source;
+            this.buffer = buffer;
             this.volumeThreshold = volumeThreshold;
-            this.intervalThresholdSeconds = intervalThresholdSeconds;
+            this.falseIntervalSeconds = falseIntervalSeconds;
 
-            disposable = this.input
+            disposable = this.source
                 .OnBufferRead
                 .Subscribe(async value => await OnBufferReadAsync(value));
             
@@ -45,21 +45,22 @@ namespace Mochineko.VoiceActivityDetection
         {
             cancellationTokenSource.Dispose();
             disposable.Dispose();
-            output.Dispose();
-            input.Dispose();
+            buffer.Dispose();
+            source.Dispose();
         }
 
         public void Update()
         {
-            input.Update();
+            source.Update();
         }
 
-        private async UniTask OnBufferReadAsync((float[] buffer, int length) value)
+        private async UniTask OnBufferReadAsync(VoiceSegment voiceSegment)
         {
-            if (!IsActiveVoice(value.buffer, value.length))
+            if (!IsActiveVoice(voiceSegment))
             {
-                if (stopwatch.ElapsedMilliseconds > intervalThresholdSeconds * 1000)
+                if (stopwatch.ElapsedMilliseconds > falseIntervalSeconds * 1000)
                 {
+                    stopwatch.Reset();
                     Log.Verbose("[VAD] Active: false");
                     isActive.Value = false;
                 }
@@ -68,15 +69,15 @@ namespace Mochineko.VoiceActivityDetection
             
             stopwatch.Restart();
             
-            await output.WriteAsync(value.buffer, value.length, cancellationTokenSource.Token);
+            await this.buffer.BufferAsync(voiceSegment, cancellationTokenSource.Token);
             
             Log.Debug("[VAD] Active: true");
             isActive.Value = true;
         }
 
-        private bool IsActiveVoice(float[] buffer, int length)
+        private bool IsActiveVoice(VoiceSegment voiceSegment)
         {
-            var volume = CalculateVolume(buffer.AsSpan(0, length));
+            var volume = CalculateVolume(voiceSegment.buffer.AsSpan(0, voiceSegment.length));
             
             Log.Verbose("[VAD] Volume: {0}", volume.ToString("F4"));
             

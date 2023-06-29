@@ -5,8 +5,8 @@ using Cysharp.Threading.Tasks;
 
 namespace Mochineko.VoiceActivityDetection
 {
-    public interface IVoiceOutput : IDisposable
+    public interface IVoiceBuffer : IDisposable
     {
-        UniTask WriteAsync(float[] buffer, int count, CancellationToken cancellationToken);
+        UniTask BufferAsync(VoiceSegment segment, CancellationToken cancellationToken);
     }
 }

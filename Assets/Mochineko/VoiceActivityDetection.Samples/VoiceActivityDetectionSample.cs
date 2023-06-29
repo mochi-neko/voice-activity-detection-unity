@@ -17,8 +17,8 @@ namespace Mochineko.VoiceActivityDetection.Samples
         private void Start()
         {
             vad = new SimpleVoiceActivityDetection(
-                input: new UnityMicrophoneInput(),
-                output: new NullVoiceOutput(),
+                source: new UnityMicrophoneSource(),
+                buffer: new NullVoiceBuffer(),
                 volumeThreshold,
                 intervalThresholdSeconds);
 

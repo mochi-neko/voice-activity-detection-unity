@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
 {
-    public sealed class UnityMicrophoneInput : IVoiceInput
+    public sealed class UnityMicrophoneSource : IVoiceSource
     {
         private readonly UnityMicrophoneProxy proxy;
         private readonly AudioClip audioClip;
@@ -14,10 +14,10 @@ namespace Mochineko.VoiceActivityDetection
         private int currentPosition;
         private int lastPosition;
 
-        private readonly Subject<(float[] buffer, int lenght)> onBufferRead = new();
-        public IObservable<(float[] buffer, int lenght)> OnBufferRead => onBufferRead;
+        private readonly Subject<VoiceSegment> onBufferRead = new();
+        public IObservable<VoiceSegment> OnBufferRead => onBufferRead;
 
-        public UnityMicrophoneInput(
+        public UnityMicrophoneSource(
             string? deviceName = null,
             int loopLengthSeconds = 1, // loopLength must be greater than update interval
             int frequency = 44100,
@@ -73,7 +73,7 @@ namespace Mochineko.VoiceActivityDetection
                     var slice = span.Slice(offset, readLength);
                     slice.CopyTo(this.readBuffer);
 
-                    onBufferRead.OnNext((this.readBuffer, readLength));
+                    onBufferRead.OnNext(new VoiceSegment(this.readBuffer, readLength));
 
                     offset += readLength;
                 }
@@ -112,7 +112,7 @@ namespace Mochineko.VoiceActivityDetection
                         slice.CopyTo(this.readBuffer);
                     }
 
-                    onBufferRead.OnNext((this.readBuffer, readLength));
+                    onBufferRead.OnNext(new VoiceSegment(this.readBuffer, readLength));
 
                     offset += readLength;
                 }
