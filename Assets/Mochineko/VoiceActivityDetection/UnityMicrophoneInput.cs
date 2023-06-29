@@ -32,15 +32,20 @@ namespace Mochineko.VoiceActivityDetection
         public void Update()
         {
             currentPosition = this.proxy.GetSamplePosition();
-            if (currentPosition <= 0)
+            if (currentPosition < 0)
             {
                 lastPosition = currentPosition;
                 return;
             }
-            
+
+            if (lastPosition < 0)
+            {
+                lastPosition = 0;
+            }
+
             // Write current data to loop buffer
-            this.audioClip.GetData(this.loopBuffer, offsetSamples:0);
-            
+            this.audioClip.GetData(this.loopBuffer, offsetSamples: 0);
+
             // Read samples from last position to current position
             ReadCurrentSamples();
 
@@ -62,14 +67,14 @@ namespace Mochineko.VoiceActivityDetection
                 var offset = 0;
                 while (offset < length)
                 {
-                    Array.Clear(this.readBuffer, index:0, this.readBuffer.Length);
-            
+                    Array.Clear(this.readBuffer, index: 0, this.readBuffer.Length);
+
                     var readLength = Math.Min(this.readBuffer.Length, length - offset);
                     var slice = span.Slice(offset, readLength);
                     slice.CopyTo(this.readBuffer);
-            
+
                     onBufferRead.OnNext((this.readBuffer, readLength));
-            
+
                     offset += readLength;
                 }
             }
@@ -81,33 +86,34 @@ namespace Mochineko.VoiceActivityDetection
                 var offset = 0;
                 while (offset < length)
                 {
-                    Array.Clear(this.readBuffer, index:0, this.readBuffer.Length);
-            
+                    Array.Clear(this.readBuffer, index: 0, this.readBuffer.Length);
+
                     var readLength = Math.Min(this.readBuffer.Length, length - offset);
-                    if (offset < toEnd.Length)
+                    // Read all from toEnd
+                    if (offset < toEnd.Length - readLength)
                     {
-                        if (offset + readLength <= toEnd.Length) // Read all from toEnd
-                        {
-                            var slice = toEnd.Slice(offset, readLength);
-                            slice.CopyTo(this.readBuffer);
-                        }
-                        else // Read from toEnd and fromStart
-                        {
-                            var sliceInToEnd = toEnd.Slice(offset, readLength);
-                            sliceInToEnd.CopyTo(this.readBuffer.AsSpan(0..sliceInToEnd.Length));
-                            
-                            var sliceInFromStart = fromStart.Slice(start:0, readLength - sliceInToEnd.Length);
-                            sliceInFromStart.CopyTo(this.readBuffer.AsSpan(sliceInToEnd.Length..readLength));
-                        }
+                        var slice = toEnd.Slice(offset, readLength);
+                        slice.CopyTo(this.readBuffer);
                     }
-                    else // Read all from fromStart
+                    // Read from toEnd and fromStart
+                    else if (offset < toEnd.Length)
+                    {
+                        var readLenghtFromToEnd = toEnd.Length - offset;
+                        var sliceInToEnd = toEnd.Slice(offset, readLenghtFromToEnd);
+                        sliceInToEnd.CopyTo(this.readBuffer.AsSpan(0..readLenghtFromToEnd));
+
+                        var sliceInFromStart = fromStart.Slice(start: 0, readLength - readLenghtFromToEnd);
+                        sliceInFromStart.CopyTo(this.readBuffer.AsSpan(readLenghtFromToEnd..readLength));
+                    }
+                    // Read all from fromStart
+                    else
                     {
                         var slice = fromStart.Slice(offset - toEnd.Length, readLength);
                         slice.CopyTo(this.readBuffer);
                     }
 
                     onBufferRead.OnNext((this.readBuffer, readLength));
-            
+
                     offset += readLength;
                 }
             }
