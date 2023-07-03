@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using UnityEngine;
+
 namespace Mochineko.VoiceActivityDetection
 {
     /// <summary>
@@ -10,7 +12,7 @@ namespace Mochineko.VoiceActivityDetection
         /// Buffer array of voice segment.
         /// </summary>
         public readonly float[] buffer;
-        
+
         /// <summary>
         /// Effective length of voice segment data in buffer.
         /// </summary>
@@ -20,6 +22,18 @@ namespace Mochineko.VoiceActivityDetection
         {
             this.buffer = buffer;
             this.length = length;
+        }
+
+        public float Volume()
+        {
+            var sum = 0f;
+            for (var i = 0; i < length; i++)
+            {
+                var sample = buffer[i];
+                sum += sample * sample;
+            }
+
+            return Mathf.Sqrt(sum / length); // Root mean square
         }
     }
 }

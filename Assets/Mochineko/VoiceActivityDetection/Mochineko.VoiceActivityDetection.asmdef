@@ -2,9 +2,11 @@
     "name": "Mochineko.VoiceActivityDetection",
     "rootNamespace": "",
     "references": [
+        "GUID:cc4a20372913d4ba9bc6f1f4d3837ac3",
+        "GUID:3ed995982eec04b2e9d304b5b6242945",
+        "GUID:9dc703687ff9843c78c2eab70b2e26ff",
         "GUID:560b04d1a97f54a4e82edc0cbbb69285",
         "GUID:f51ebe6a0ceec4240a699833d6309b23",
-        "GUID:9dc703687ff9843c78c2eab70b2e26ff",
         "GUID:fd228c28e14f1a34cbe508676c914dd7",
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:e0cd26848372d4e5c891c569017e11f1"

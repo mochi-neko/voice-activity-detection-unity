@@ -14,11 +14,15 @@ namespace Mochineko.VoiceActivityDetection
         private readonly AudioClip audioClip;
         private readonly float[] loopBuffer;
         private readonly float[] readBuffer;
+        private readonly int frequency;
         private int currentPosition;
         private int lastPosition;
 
         private readonly Subject<VoiceSegment> onSegmentRead = new();
         public IObservable<VoiceSegment> OnSegmentRead => onSegmentRead;
+        
+        int IVoiceSource.SamplingRate => frequency;
+        int IVoiceSource.Channels => 1;
 
         public UnityMicrophoneSource(
             string? deviceName = null,
@@ -30,6 +34,7 @@ namespace Mochineko.VoiceActivityDetection
             this.audioClip = this.proxy.AudioClip;
             this.loopBuffer = new float[loopLengthSeconds * frequency];
             this.readBuffer = new float[readBufferSize];
+            this.frequency = frequency;
         }
 
         public void Update()
