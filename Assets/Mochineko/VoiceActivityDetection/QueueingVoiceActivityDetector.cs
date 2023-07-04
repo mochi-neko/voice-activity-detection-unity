@@ -18,11 +18,14 @@ namespace Mochineko.VoiceActivityDetection
         private readonly float activeVolumeThreshold;
         private readonly float activationRateThreshold;
         private readonly float deactivationRateThreshold;
+        private readonly float activationIntervalSeconds;
         private readonly float deactivationIntervalSeconds;
+        private readonly float maxDurationSeconds;
 
         private readonly CompositeDisposable compositeDisposable = new();
         private readonly CancellationTokenSource cancellationTokenSource = new();
-        private readonly Stopwatch stopwatch = new();
+        private readonly Stopwatch intervalStopwatch = new();
+        private readonly Stopwatch totalDurationStopwatch = new();
 
         private readonly ReactiveProperty<bool> isActive = new();
         public IReadOnlyReactiveProperty<bool> IsActive => isActive;
@@ -34,7 +37,9 @@ namespace Mochineko.VoiceActivityDetection
             float activeVolumeThreshold,
             float activationRateThreshold,
             float deactivationRateThreshold,
-            float deactivationIntervalSeconds)
+            float activationIntervalSeconds,
+            float deactivationIntervalSeconds,
+            float maxDurationSeconds)
         {
             this.source = source;
             this.buffer = buffer;
@@ -42,14 +47,16 @@ namespace Mochineko.VoiceActivityDetection
             this.activeVolumeThreshold = activeVolumeThreshold;
             this.activationRateThreshold = activationRateThreshold;
             this.deactivationRateThreshold = deactivationRateThreshold;
+            this.activationIntervalSeconds = activationIntervalSeconds;
             this.deactivationIntervalSeconds = deactivationIntervalSeconds;
+            this.maxDurationSeconds = maxDurationSeconds;
 
             this.source
                 .OnSegmentRead
                 .Subscribe(OnSegmentReadAsync)
                 .AddTo(compositeDisposable);
 
-            this.stopwatch.Start();
+            this.intervalStopwatch.Start();
         }
 
         public void Dispose()
@@ -58,7 +65,8 @@ namespace Mochineko.VoiceActivityDetection
             this.compositeDisposable.Dispose();
             this.buffer.Dispose();
             this.source.Dispose();
-            this.stopwatch.Stop();
+            this.intervalStopwatch.Stop();
+            this.totalDurationStopwatch.Stop();
         }
 
         public void Update()
@@ -66,8 +74,7 @@ namespace Mochineko.VoiceActivityDetection
             this.source.Update();
         }
 
-        private async void OnSegmentReadAsync(
-            VoiceSegment segment)
+        private async void OnSegmentReadAsync(VoiceSegment segment)
         {
             var volume = segment.Volume();
             Log.Verbose("[VAD] Volume: {0}.", volume.ToString("F4"));
@@ -77,7 +84,7 @@ namespace Mochineko.VoiceActivityDetection
 
             queue.Enqueue(new VoiceSegmentActivity(
                 isActiveSegment,
-                samplesCount: segment.length,
+                length: segment.length,
                 this.source.SamplingRate,
                 this.source.Channels)
             );
@@ -86,21 +93,26 @@ namespace Mochineko.VoiceActivityDetection
             Log.Verbose("[VAD] Active rate in queue: {0}.", activeRate);
 
             if (!isActive.Value
-                && activeRate >= activationRateThreshold)
+                && activeRate >= activationRateThreshold
+                && intervalStopwatch.ElapsedMilliseconds >= activationIntervalSeconds * 1000)
             {
                 Log.Debug("[VAD] Activated.");
-                this.buffer.OnActive();
+                await this.buffer.OnActiveAsync(this.cancellationTokenSource.Token);
                 this.isActive.Value = true;
-                stopwatch.Restart();
+                intervalStopwatch.Restart();
+                totalDurationStopwatch.Restart();
             }
             else if (
                 isActive.Value
-                && activeRate <= deactivationRateThreshold
-                && stopwatch.ElapsedMilliseconds >= deactivationIntervalSeconds * 1000)
+                && (totalDurationStopwatch.ElapsedMilliseconds >= maxDurationSeconds * 1000
+                    || (activeRate <= deactivationRateThreshold
+                        && intervalStopwatch.ElapsedMilliseconds >= deactivationIntervalSeconds * 1000)))
             {
                 Log.Debug("[VAD] Deactivated.");
-                this.buffer.OnInactive();
+                await this.buffer.OnInactiveAsync(this.cancellationTokenSource.Token);
                 this.isActive.Value = false;
+                intervalStopwatch.Restart();
+                return;
             }
 
             if (isActive.Value)

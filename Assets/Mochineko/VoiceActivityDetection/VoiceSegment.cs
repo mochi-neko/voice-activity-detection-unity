@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
@@ -20,6 +21,11 @@ namespace Mochineko.VoiceActivityDetection
 
         public VoiceSegment(float[] buffer, int length)
         {
+            if (length > buffer.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(length));
+            }
+            
             this.buffer = buffer;
             this.length = length;
         }

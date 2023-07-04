@@ -10,13 +10,13 @@ namespace Mochineko.VoiceActivityDetection
 
         public VoiceSegmentActivity(
             bool isActive,
-            int samplesCount,
+            int length,
             int samplingRate,
             int channels)
         {
-            if (samplesCount <= 0)
+            if (length <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(samplesCount));
+                throw new ArgumentOutOfRangeException(nameof(length));
             }
             
             if (samplingRate <= 0)
@@ -30,7 +30,7 @@ namespace Mochineko.VoiceActivityDetection
             }
             
             this.isActive = isActive;
-            this.timeSeconds = (float)samplesCount / samplingRate / channels;
+            this.timeSeconds = (float)length / samplingRate / channels;
         }
     }
 }

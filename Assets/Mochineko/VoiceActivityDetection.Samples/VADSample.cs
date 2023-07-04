@@ -23,7 +23,13 @@ namespace Mochineko.VoiceActivityDetection.Samples
         private float deactivationRateThreshold = 0.4f;
         
         [SerializeField]
-        private float intervalSeconds = 0.5f;
+        private float activationIntervalSeconds = 0.5f;
+        
+        [SerializeField]
+        private float deactivationIntervalSeconds = 0.5f;
+        
+        [SerializeField]
+        private float maxDurationSeconds = 10f;
 
         private IVoiceActivityDetector? vad;
 
@@ -36,7 +42,9 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 activeVolumeThreshold,
                 activationRateThreshold,
                 deactivationRateThreshold,
-                intervalSeconds);
+                activationIntervalSeconds,
+                deactivationIntervalSeconds,
+                maxDurationSeconds);
 
             vad
                 .IsActive

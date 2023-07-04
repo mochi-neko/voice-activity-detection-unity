@@ -6,6 +6,8 @@ using Cysharp.Threading.Tasks;
 using NAudio.Utils;
 using NAudio.Wave;
 using UniRx;
+using Unity.Logging;
+using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
 {
@@ -14,35 +16,32 @@ namespace Mochineko.VoiceActivityDetection
     /// </summary>
     public sealed class WaveVoiceBuffer : IVoiceBuffer
     {
+        private readonly IWaveStreamReceiver receiver;
         private readonly WaveFormat format;
-        private readonly bool disposeStream;
+
+        private readonly object lockObject = new();
         
         private Stream? stream;
         private WaveFileWriter? writer;
-        private int offset;
-
-        private readonly Subject<Stream> onBufferCompleted = new();
-        public IObservable<Stream> OnBufferCompleted => onBufferCompleted;
 
         public WaveVoiceBuffer(
+            IWaveStreamReceiver receiver,
             int samplingRate = 44100,
             int bitsPerSample = 16,
-            int channels = 1,
-            bool disposeStream = true)
+            int channels = 1)
         {
+            this.receiver = receiver;
             this.format = new WaveFormat(
                 rate: samplingRate,
                 bits: bitsPerSample,
                 channels: channels);
-
-            this.disposeStream = disposeStream;
         }
 
         public void Dispose()
         {
             Reset();
         }
-        
+
         public async UniTask BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -51,48 +50,66 @@ namespace Mochineko.VoiceActivityDetection
             {
                 throw new InvalidOperationException();
             }
-            
+
             await UniTask.SwitchToThreadPool();
-            
-            writer.WriteSamples(segment.buffer, offset:0, segment.length);
-            offset += segment.length;
+
+            lock (lockObject)
+            {
+                writer.WriteSamples(segment.buffer, offset: 0, segment.length);
+            }
 
             await UniTask.SwitchToMainThread(cancellationToken);
         }
-        
-        public void OnActive()
+
+        public UniTask OnActiveAsync(CancellationToken cancellationToken)
         {
             Reset();
-            
+
             stream = new MemoryStream();
-            
-            writer = new WaveFileWriter(
-                outStream: new IgnoreDisposeStream(stream),
-                format: format);
+
+            lock (lockObject)
+            {
+                writer = new WaveFileWriter(
+                    outStream: stream,
+                    format: format);
+            }
+
+            return UniTask.CompletedTask;
         }
 
-        public void OnInactive()
+        public async UniTask OnInactiveAsync(CancellationToken cancellationToken)
         {
             if (stream == null)
             {
-                return;
+                throw new InvalidOperationException();
             }
 
-            stream.Seek(offset: 0, origin: SeekOrigin.Begin);
-            onBufferCompleted.OnNext(stream);
+            if (writer == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            await writer.FlushAsync(cancellationToken);
+
+            // NOTE: Please dispose stream by receiver.
+            var copiedStream = new MemoryStream();
+            stream.Seek(offset: 0, SeekOrigin.Begin);
+            await stream.CopyToAsync(copiedStream, cancellationToken);
+            copiedStream.Seek(offset: 0, SeekOrigin.Begin);
+
+            receiver.OnReceive(copiedStream);
         }
-        
+
         private void Reset()
         {
-            writer?.Dispose();
-            if (disposeStream)
+            lock (lockObject)
             {
-                stream?.Dispose();
+                writer?.Dispose();
+                writer = null;
+                
+                // NOTE: stream is disposed by writer.
+                stream = null;
             }
-
-            writer = null;
-            stream = null;
-            offset = 0;    
         }
     }
 }

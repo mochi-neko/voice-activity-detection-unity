@@ -18,8 +18,8 @@ namespace Mochineko.VoiceActivityDetection
         /// <returns></returns>
         UniTask BufferAsync(VoiceSegment segment, CancellationToken cancellationToken);
 
-        void OnActive();
+        UniTask OnActiveAsync(CancellationToken cancellationToken);
         
-        void OnInactive();
+        UniTask OnInactiveAsync(CancellationToken cancellationToken);
     }
 }
