@@ -24,6 +24,8 @@ namespace Mochineko.VoiceActivityDetection
         private Stream? stream;
         private WaveFileWriter? writer;
 
+        private int sizeCounter;
+
         public WaveVoiceBuffer(
             IWaveStreamReceiver receiver,
             int samplingRate = 44100,
@@ -55,6 +57,8 @@ namespace Mochineko.VoiceActivityDetection
 
             lock (lockObject)
             {
+                sizeCounter += segment.length;
+                Log.Verbose("[VAD] Write {0} / {1} samples to wave stream.", segment.length, sizeCounter);
                 writer.WriteSamples(segment.buffer, offset: 0, segment.length);
             }
 
@@ -73,6 +77,8 @@ namespace Mochineko.VoiceActivityDetection
                     outStream: stream,
                     format: format);
             }
+
+            sizeCounter = 0;
 
             return UniTask.CompletedTask;
         }

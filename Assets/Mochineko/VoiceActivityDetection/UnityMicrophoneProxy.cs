@@ -12,7 +12,10 @@ namespace Mochineko.VoiceActivityDetection
         private readonly string? deviceName;
         public AudioClip AudioClip { get; }
 
-        public UnityMicrophoneProxy(string? deviceName = null, int loopLengthSeconds = 1, int frequency = 44100)
+        public UnityMicrophoneProxy(
+            string? deviceName = null,
+            int loopLengthSeconds = 1,
+            int frequency = 44100)
         {
             this.deviceName = deviceName;
             // NOTE: Because UnityEngine.Microphone updates only latest AudioClip instance, if you want to use multiple recorder, you should use this proxy.

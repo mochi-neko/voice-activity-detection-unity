@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using UniRx;
+using Unity.Logging;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
@@ -28,7 +29,7 @@ namespace Mochineko.VoiceActivityDetection
             string? deviceName = null,
             int loopLengthSeconds = 1, // loopLength must be greater than update interval
             int frequency = 44100,
-            int readBufferSize = 1024)
+            int readBufferSize = 4096)
         {
             this.proxy = new UnityMicrophoneProxy(deviceName, loopLengthSeconds, frequency);
             this.audioClip = this.proxy.AudioClip;
@@ -42,16 +43,17 @@ namespace Mochineko.VoiceActivityDetection
             currentPosition = this.proxy.GetSamplePosition();
             if (currentPosition < 0)
             {
-                lastPosition = currentPosition;
+                lastPosition = 0;
                 return;
             }
 
-            if (lastPosition < 0)
+            // No update of microphone audio
+            if (currentPosition == lastPosition)
             {
-                lastPosition = 0;
+                return;
             }
 
-            // Write current data to loop buffer
+            // Write current all data to loop buffer
             this.audioClip.GetData(this.loopBuffer, offsetSamples: 0);
 
             // Read samples from last position to current position
