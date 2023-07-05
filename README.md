@@ -8,7 +8,7 @@ A voice activity detection library for Unity.
   - [ ] `AudioSource`
   - [ ] Native microphone
 - Buffers
-  - [x] Null
+  - [x] Null (Detection only)
   - [x] Wave file (by [simple-audio-codec-unity](https://github.com/mochi-neko/simple-audio-codec-unity) / [NAudio](https://github.com/naudio/NAudio))
   - [ ] AudioClip
 - Voice activity detection logics
