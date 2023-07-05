@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2023-XX-XX
+## [0.1.0] - 2023-07-05
 
 ### Added
 - Voice source from `UnityEngine.Microphone`.
-- Null Voice buffer.
-- Wave file Voice buffer.
-- Simple (voice volume and false interval) VAD logic.
+- Wave file Voice buffer by NAudio.
+- Queueing-based VAD logic.
+- A simple sample implementation of VAD as component.
+- A sample implementation of VAD with OpenAI/Whisper API.
