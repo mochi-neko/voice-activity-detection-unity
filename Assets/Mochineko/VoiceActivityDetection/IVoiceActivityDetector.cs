@@ -5,7 +5,7 @@ using UniRx;
 namespace Mochineko.VoiceActivityDetection
 {
     /// <summary>
-    /// Detects voice activity.
+    /// Detector of voice activity.
     /// </summary>
     public interface IVoiceActivityDetector : IDisposable
     {

@@ -8,12 +8,15 @@ using Assets.Mochineko.WhisperAPI;
 using Cysharp.Threading.Tasks;
 using Mochineko.Relent.Resilience;
 using Mochineko.Relent.UncertainResult;
-using UniRx;
 using Unity.Logging;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection.Samples
 {
+    /// <summary>
+    /// A sample of voice activity detection as a component.
+    /// Input UnityEngine.Microphone and output WAV file, then transcribe voice into text by OpenAI/Whisper API.
+    /// </summary>
     internal sealed class VADToWhisperSample : MonoBehaviour, IWaveStreamReceiver
     {
         [SerializeField]
@@ -26,16 +29,16 @@ namespace Mochineko.VoiceActivityDetection.Samples
         private float activationRateThreshold = 0.6f;
         
         [SerializeField]
-        private float deactivationRateThreshold = 0.4f;
+        private float inactivationRateThreshold = 0.4f;
         
         [SerializeField]
         private float activationIntervalSeconds = 0.5f;
         
         [SerializeField]
-        private float deactivationIntervalSeconds = 0.5f;
+        private float inactivationIntervalSeconds = 0.5f;
         
         [SerializeField]
-        private float maxDurationSeconds = 10f;
+        private float maxActiveDurationSeconds = 10f;
 
         private IVoiceActivityDetector? vad;
 
@@ -58,10 +61,10 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 maxQueueingTimeSeconds,
                 activeVolumeThreshold,
                 activationRateThreshold,
-                deactivationRateThreshold,
+                inactivationRateThreshold,
                 activationIntervalSeconds,
-                deactivationIntervalSeconds,
-                maxDurationSeconds);
+                inactivationIntervalSeconds,
+                maxActiveDurationSeconds);
         }
 
         private void OnDestroy()
@@ -82,7 +85,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
             }
         }
 
-        public void OnReceive(Stream stream)
+        void IWaveStreamReceiver.OnReceive(Stream stream)
         {
             Log.Debug("[VAD.Samples] Enqueue wave stream.");
             
@@ -91,6 +94,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
         private async UniTask TranscribeAsync(Stream stream, CancellationToken cancellationToken)
         {
+            // API key must be set in environment variable.
             var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
             if (string.IsNullOrEmpty(apiKey))
             {

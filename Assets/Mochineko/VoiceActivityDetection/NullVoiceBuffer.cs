@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
@@ -9,17 +10,17 @@ namespace Mochineko.VoiceActivityDetection
     /// </summary>
     public sealed class NullVoiceBuffer : IVoiceBuffer
     {
-        public void Dispose()
+        UniTask IVoiceBuffer.BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
+            => UniTask.CompletedTask;
+
+        UniTask IVoiceBuffer.OnActiveAsync(CancellationToken cancellationToken)
+            => UniTask.CompletedTask;
+
+        UniTask IVoiceBuffer.OnInactiveAsync(CancellationToken cancellationToken)
+            => UniTask.CompletedTask;
+        
+        void IDisposable.Dispose()
         {
         }
-
-        public UniTask BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
-            => UniTask.CompletedTask;
-
-        public UniTask OnActiveAsync(CancellationToken cancellationToken)
-            => UniTask.CompletedTask;
-
-        public UniTask OnInactiveAsync(CancellationToken cancellationToken)
-            => UniTask.CompletedTask;
     }
 }

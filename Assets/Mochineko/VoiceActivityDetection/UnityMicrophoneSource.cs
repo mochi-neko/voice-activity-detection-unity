@@ -1,13 +1,12 @@
 ﻿#nullable enable
 using System;
 using UniRx;
-using Unity.Logging;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
 {
     /// <summary>
-    /// 
+    /// A voice source that uses UnityEngine.Microphone.
     /// </summary>
     public sealed class UnityMicrophoneSource : IVoiceSource
     {
@@ -20,14 +19,21 @@ namespace Mochineko.VoiceActivityDetection
         private int lastPosition;
 
         private readonly Subject<VoiceSegment> onSegmentRead = new();
-        public IObservable<VoiceSegment> OnSegmentRead => onSegmentRead;
+        IObservable<VoiceSegment> IVoiceSource.OnSegmentRead => onSegmentRead;
         
         int IVoiceSource.SamplingRate => frequency;
         int IVoiceSource.Channels => 1;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="UnityMicrophoneSource"/>.
+        /// </summary>
+        /// <param name="deviceName">Microphone device name to record, `null` specifies OS default device.</param>
+        /// <param name="loopLengthSeconds">Loop time(sec) of microphone recording, it should be greater than update interval.</param>
+        /// <param name="frequency">Frequency (= sampling rate) of recording.</param>
+        /// <param name="readBufferSize">Fixed buffer size to read voice data at one time.</param>
         public UnityMicrophoneSource(
             string? deviceName = null,
-            int loopLengthSeconds = 1, // loopLength must be greater than update interval
+            int loopLengthSeconds = 1,
             int frequency = 44100,
             int readBufferSize = 4096)
         {
@@ -38,7 +44,7 @@ namespace Mochineko.VoiceActivityDetection
             this.frequency = frequency;
         }
 
-        public void Update()
+        void IVoiceSource.Update()
         {
             currentPosition = this.proxy.GetSamplePosition();
             if (currentPosition < 0)
@@ -63,7 +69,7 @@ namespace Mochineko.VoiceActivityDetection
             lastPosition = currentPosition;
         }
 
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             this.proxy.Dispose();
         }
@@ -71,6 +77,11 @@ namespace Mochineko.VoiceActivityDetection
         private void ReadCurrentSamples()
         {
             var length = currentPosition - lastPosition;
+            if (length == 0)
+            {
+                return;
+            }
+            
             if (length > 0)
             {
                 var span = this.loopBuffer.AsSpan(lastPosition..currentPosition);

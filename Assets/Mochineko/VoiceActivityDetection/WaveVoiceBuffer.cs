@@ -3,11 +3,8 @@ using System;
 using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using NAudio.Utils;
 using NAudio.Wave;
-using UniRx;
 using Unity.Logging;
-using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
 {
@@ -26,6 +23,13 @@ namespace Mochineko.VoiceActivityDetection
 
         private int sizeCounter;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="WaveVoiceBuffer"/>.
+        /// </summary>
+        /// <param name="receiver">Receiver of wave file stream when voice changes inactive state.</param>
+        /// <param name="samplingRate">Sampling rate of voice data.</param>
+        /// <param name="bitsPerSample">Bits count per each sample to write wave data, 16, 24 or 32.</param>
+        /// <param name="channels">Channels count of voice data</param>
         public WaveVoiceBuffer(
             IWaveStreamReceiver receiver,
             int samplingRate = 44100,
@@ -39,12 +43,12 @@ namespace Mochineko.VoiceActivityDetection
                 channels: channels);
         }
 
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             Reset();
         }
 
-        public async UniTask BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
+        async UniTask IVoiceBuffer.BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -65,7 +69,7 @@ namespace Mochineko.VoiceActivityDetection
             await UniTask.SwitchToMainThread(cancellationToken);
         }
 
-        public UniTask OnActiveAsync(CancellationToken cancellationToken)
+        UniTask IVoiceBuffer.OnActiveAsync(CancellationToken cancellationToken)
         {
             Reset();
 
@@ -83,7 +87,7 @@ namespace Mochineko.VoiceActivityDetection
             return UniTask.CompletedTask;
         }
 
-        public async UniTask OnInactiveAsync(CancellationToken cancellationToken)
+        async UniTask IVoiceBuffer.OnInactiveAsync(CancellationToken cancellationToken)
         {
             if (stream == null)
             {

@@ -11,6 +11,7 @@ namespace Mochineko.VoiceActivityDetection
     {
         /// <summary>
         /// Buffer array of voice segment.
+        /// Notice that this array is shared and reused.
         /// </summary>
         public readonly float[] buffer;
 
@@ -19,6 +20,12 @@ namespace Mochineko.VoiceActivityDetection
         /// </summary>
         public readonly int length;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="VoiceSegment"/>.
+        /// </summary>
+        /// <param name="buffer">Buffer array of voice segment.</param>
+        /// <param name="length">Effective length of voice segment data in buffer.</param>
+        /// <exception cref="ArgumentOutOfRangeException">length must be short than buffer size.</exception>
         public VoiceSegment(float[] buffer, int length)
         {
             if (length > buffer.Length)
@@ -30,6 +37,10 @@ namespace Mochineko.VoiceActivityDetection
             this.length = length;
         }
 
+        /// <summary>
+        /// Calculates the volume (root mean square) of this voice segment.
+        /// </summary>
+        /// <returns></returns>
         public float Volume()
         {
             var sum = 0f;

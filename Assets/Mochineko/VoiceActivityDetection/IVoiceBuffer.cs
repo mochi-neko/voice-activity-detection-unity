@@ -6,20 +6,30 @@ using Cysharp.Threading.Tasks;
 namespace Mochineko.VoiceActivityDetection
 {
     /// <summary>
-    /// Buffers voice data.
+    /// Buffer of voice data.
     /// </summary>
     public interface IVoiceBuffer : IDisposable
     {
         /// <summary>
         /// Buffers voice segment.
         /// </summary>
-        /// <param name="segment"></param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="segment">Voice segment data to buffer.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
         UniTask BufferAsync(VoiceSegment segment, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Called when voice has been active.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns></returns>
         UniTask OnActiveAsync(CancellationToken cancellationToken);
         
+        /// <summary>
+        /// Called when voice has been inactive.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns></returns>
         UniTask OnInactiveAsync(CancellationToken cancellationToken);
     }
 }

@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Mochineko.VoiceActivityDetection
 {
+    /// <summary>
+    /// Queue of voice segment activity.
+    /// </summary>
     internal sealed class VoiceSegmentActivityQueue
     {
         private readonly Queue<VoiceSegmentActivity> queue = new();

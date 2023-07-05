@@ -7,6 +7,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
 {
     /// <summary>
     /// A sample of voice activity detection as a component.
+    /// Input UnityEngine.Microphone and output only log.
     /// </summary>
     internal sealed class VADSample : MonoBehaviour
     {
@@ -20,16 +21,16 @@ namespace Mochineko.VoiceActivityDetection.Samples
         private float activationRateThreshold = 0.6f;
         
         [SerializeField]
-        private float deactivationRateThreshold = 0.4f;
+        private float inactivationRateThreshold = 0.4f;
         
         [SerializeField]
         private float activationIntervalSeconds = 0.5f;
         
         [SerializeField]
-        private float deactivationIntervalSeconds = 0.5f;
+        private float inactivationIntervalSeconds = 0.5f;
         
         [SerializeField]
-        private float maxDurationSeconds = 10f;
+        private float maxActiveDurationSeconds = 10f;
 
         private IVoiceActivityDetector? vad;
 
@@ -41,10 +42,10 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 maxQueueingTimeSeconds,
                 activeVolumeThreshold,
                 activationRateThreshold,
-                deactivationRateThreshold,
+                inactivationRateThreshold,
                 activationIntervalSeconds,
-                deactivationIntervalSeconds,
-                maxDurationSeconds);
+                inactivationIntervalSeconds,
+                maxActiveDurationSeconds);
 
             vad
                 .IsActive

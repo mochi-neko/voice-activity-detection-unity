@@ -8,12 +8,18 @@ namespace Mochineko.VoiceActivityDetection
     /// </summary>
     public interface IVoiceSource : IDisposable
     {
+        /// <summary>
+        /// Sampling rate (= frequency) of voice data.
+        /// </summary>
         int SamplingRate { get; }
         
+        /// <summary>
+        /// Channels count of voice data.
+        /// </summary>
         int Channels { get; }
         
         /// <summary>
-        /// Called when a segment is read.
+        /// Called when a segment has been read.
         /// </summary>
         IObservable<VoiceSegment> OnSegmentRead { get; }
         
