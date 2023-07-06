@@ -17,7 +17,7 @@ namespace Mochineko.VoiceActivityDetection
         private readonly WaveFormat format;
 
         private readonly object lockObject = new();
-        
+
         private Stream? stream;
         private WaveFileWriter? writer;
 
@@ -116,7 +116,7 @@ namespace Mochineko.VoiceActivityDetection
             {
                 writer?.Dispose();
                 writer = null;
-                
+
                 // NOTE: stream is disposed by writer.
                 stream = null;
             }

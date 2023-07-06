@@ -9,7 +9,6 @@ using Cysharp.Threading.Tasks;
 using Mochineko.Relent.Resilience;
 using Mochineko.Relent.UncertainResult;
 using Unity.Logging;
-using Unity.Logging.Sinks;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection.Samples
@@ -58,11 +57,9 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
         private void Start()
         {
-            var buffer = new WaveVoiceBuffer(this);
-
             vad = new QueueingVoiceActivityDetector(
                 source: new UnityMicrophoneSource(),
-                buffer: buffer,
+                buffer: new WaveVoiceBuffer(this),
                 maxQueueingTimeSeconds,
                 minQueueingTimeSeconds,
                 activeVolumeThreshold,
