@@ -29,19 +29,17 @@ namespace Mochineko.VoiceActivityDetection
         /// </summary>
         /// <param name="deviceName">Microphone device name to record, `null` specifies OS default device.</param>
         /// <param name="loopLengthSeconds">Loop time(sec) of microphone recording, it should be greater than update interval.</param>
-        /// <param name="frequency">Frequency (= sampling rate) of recording.</param>
         /// <param name="readBufferSize">Fixed buffer size to read voice data at one time.</param>
         public UnityMicrophoneSource(
             string? deviceName = null,
             int loopLengthSeconds = 1,
-            int frequency = 44100,
             int readBufferSize = 4096)
         {
-            this.proxy = new UnityMicrophoneProxy(deviceName, loopLengthSeconds, frequency);
+            this.proxy = new UnityMicrophoneProxy(deviceName, loopLengthSeconds);
+            this.frequency = this.proxy.GetMaxFrequency();
             this.audioClip = this.proxy.AudioClip;
             this.loopBuffer = new float[loopLengthSeconds * frequency];
             this.readBuffer = new float[readBufferSize];
-            this.frequency = frequency;
         }
 
         void IVoiceSource.Update()

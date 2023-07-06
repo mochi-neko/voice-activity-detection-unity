@@ -61,7 +61,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
             var buffer = new WaveVoiceBuffer(this);
 
             vad = new QueueingVoiceActivityDetector(
-                source: new UnityMicrophoneSource(frequency: 16000),
+                source: new UnityMicrophoneSource(),
                 buffer: buffer,
                 maxQueueingTimeSeconds,
                 minQueueingTimeSeconds,
