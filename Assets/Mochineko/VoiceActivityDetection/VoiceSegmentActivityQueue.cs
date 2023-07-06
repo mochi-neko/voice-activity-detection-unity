@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,7 +10,7 @@ namespace Mochineko.VoiceActivityDetection
     /// </summary>
     internal sealed class VoiceSegmentActivityQueue
     {
-        private readonly Queue<VoiceSegmentActivity> queue = new();
+        private readonly ConcurrentQueue<VoiceSegmentActivity> queue = new();
         private readonly float maxQueueingTimeSeconds;
         
         public VoiceSegmentActivityQueue(float maxQueueingTimeSeconds)
@@ -21,13 +22,13 @@ namespace Mochineko.VoiceActivityDetection
         {
             queue.Enqueue(activity);
 
-            while (CalculateTotalTimeSeconds() > maxQueueingTimeSeconds)
+            while (TotalTimeSeconds() > maxQueueingTimeSeconds)
             {
-                queue.Dequeue();
+                queue.TryDequeue(out var _);
             }
         }
 
-        private float CalculateTotalTimeSeconds()
+        public float TotalTimeSeconds()
         {
             var totalTimeSeconds = 0f;    
             foreach (var activity in queue)

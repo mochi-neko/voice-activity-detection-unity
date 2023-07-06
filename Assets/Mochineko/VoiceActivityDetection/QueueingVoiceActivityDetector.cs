@@ -16,6 +16,7 @@ namespace Mochineko.VoiceActivityDetection
         private readonly IVoiceSource source;
         private readonly IVoiceBuffer buffer;
         private readonly VoiceSegmentActivityQueue queue;
+        private readonly float minQueueingTimeSeconds;
         private readonly float activeVolumeThreshold;
         private readonly float activationRateThreshold;
         private readonly float inactivationRateThreshold;
@@ -47,6 +48,7 @@ namespace Mochineko.VoiceActivityDetection
             IVoiceSource source,
             IVoiceBuffer buffer,
             float maxQueueingTimeSeconds,
+            float minQueueingTimeSeconds,
             float activeVolumeThreshold,
             float activationRateThreshold,
             float inactivationRateThreshold,
@@ -57,6 +59,7 @@ namespace Mochineko.VoiceActivityDetection
             this.source = source;
             this.buffer = buffer;
             this.queue = new VoiceSegmentActivityQueue(maxQueueingTimeSeconds);
+            this.minQueueingTimeSeconds = minQueueingTimeSeconds;
             this.activeVolumeThreshold = activeVolumeThreshold;
             this.activationRateThreshold = activationRateThreshold;
             this.inactivationRateThreshold = inactivationRateThreshold;
@@ -102,9 +105,15 @@ namespace Mochineko.VoiceActivityDetection
                 this.source.Channels)
             );
 
+            if (queue.TotalTimeSeconds() < minQueueingTimeSeconds)
+            {
+                return;
+            }
+
             var activeRate = queue.ActiveTimeRate();
             Log.Verbose("[VAD] Active rate in queue: {0}.", activeRate);
 
+            // Change to active
             if (!isActive.Value
                 && activeRate >= activationRateThreshold
                 && intervalStopwatch.ElapsedMilliseconds >= activationIntervalSeconds * 1000)
@@ -115,6 +124,7 @@ namespace Mochineko.VoiceActivityDetection
                 intervalStopwatch.Restart();
                 totalDurationStopwatch.Restart();
             }
+            // Change to inactive
             else if (
                 isActive.Value
                 && (totalDurationStopwatch.ElapsedMilliseconds >= maxActiveDurationSeconds * 1000

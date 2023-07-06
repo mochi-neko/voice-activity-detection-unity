@@ -16,6 +16,9 @@ namespace Mochineko.VoiceActivityDetection.Samples
         
         [SerializeField]
         private float maxQueueingTimeSeconds = 1f;
+
+        [SerializeField]
+        private float minQueueingTimeSeconds = 0.5f;
         
         [SerializeField]
         private float activationRateThreshold = 0.6f;
@@ -40,6 +43,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 source: new UnityMicrophoneSource(),
                 buffer: new NullVoiceBuffer(),
                 maxQueueingTimeSeconds,
+                minQueueingTimeSeconds,
                 activeVolumeThreshold,
                 activationRateThreshold,
                 inactivationRateThreshold,

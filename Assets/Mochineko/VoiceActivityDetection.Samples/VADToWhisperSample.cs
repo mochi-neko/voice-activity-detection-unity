@@ -9,6 +9,7 @@ using Cysharp.Threading.Tasks;
 using Mochineko.Relent.Resilience;
 using Mochineko.Relent.UncertainResult;
 using Unity.Logging;
+using Unity.Logging.Sinks;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection.Samples
@@ -24,6 +25,9 @@ namespace Mochineko.VoiceActivityDetection.Samples
         
         [SerializeField]
         private float maxQueueingTimeSeconds = 1f;
+        
+        [SerializeField]
+        private float minQueueingTimeSeconds = 0.5f;
         
         [SerializeField]
         private float activationRateThreshold = 0.6f;
@@ -47,7 +51,8 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
         private readonly TranscriptionRequestParameters requestParameters = new(
             file: "UnityMicVAD.wav",
-            model: Model.Whisper1);
+            model: Model.Whisper1,
+            language: "ja");
 
         private static readonly HttpClient httpClient = new();
 
@@ -56,9 +61,10 @@ namespace Mochineko.VoiceActivityDetection.Samples
             var buffer = new WaveVoiceBuffer(this);
 
             vad = new QueueingVoiceActivityDetector(
-                source: new UnityMicrophoneSource(),
+                source: new UnityMicrophoneSource(frequency: 16000),
                 buffer: buffer,
                 maxQueueingTimeSeconds,
+                minQueueingTimeSeconds,
                 activeVolumeThreshold,
                 activationRateThreshold,
                 inactivationRateThreshold,
@@ -116,7 +122,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
                                 stream,
                                 requestParameters,
                                 innerCancellationToken,
-                                debug: true),
+                                debug: false),
                     cancellationToken);
 
             switch (result)
@@ -125,7 +131,12 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 case IUncertainSuccessResult<string> success:
                 {
                     var text = TranscriptionResponseBody.FromJson(success.Result)?.Text;
-                    Log.Debug("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
+                    if (text != null)
+                    {
+                        // Log.Debug("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
+                        Debug.LogFormat("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
+                    }
+
                     break;
                 }
                 // Retryable failure
