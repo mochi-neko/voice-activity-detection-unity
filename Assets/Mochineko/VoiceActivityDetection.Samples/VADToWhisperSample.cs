@@ -8,6 +8,7 @@ using Assets.Mochineko.WhisperAPI;
 using Cysharp.Threading.Tasks;
 using Mochineko.Relent.Resilience;
 using Mochineko.Relent.UncertainResult;
+using UniRx;
 using Unity.Logging;
 using UnityEngine;
 
@@ -20,28 +21,10 @@ namespace Mochineko.VoiceActivityDetection.Samples
     internal sealed class VADToWhisperSample : MonoBehaviour, IWaveStreamReceiver
     {
         [SerializeField]
-        private float activeVolumeThreshold = 0.01f;
-        
+        private VADParameters? parameters = null;
+
         [SerializeField]
-        private float maxQueueingTimeSeconds = 1f;
-        
-        [SerializeField]
-        private float minQueueingTimeSeconds = 0.5f;
-        
-        [SerializeField]
-        private float activationRateThreshold = 0.6f;
-        
-        [SerializeField]
-        private float inactivationRateThreshold = 0.4f;
-        
-        [SerializeField]
-        private float activationIntervalSeconds = 0.5f;
-        
-        [SerializeField]
-        private float inactivationIntervalSeconds = 0.5f;
-        
-        [SerializeField]
-        private float maxActiveDurationSeconds = 10f;
+        private AudioSource? audioSource = null;
 
         private IVoiceActivityDetector? vad;
 
@@ -57,17 +40,47 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
         private void Start()
         {
+            if (parameters == null)
+            {
+                throw new NullReferenceException(nameof(parameters));
+            }
+            if (audioSource == null)
+            {
+                throw new NullReferenceException(nameof(audioSource));
+            }
+
+            IVoiceSource source = new UnityMicrophoneSource();
+
+            var audioClipBuffer = new AudioClipBuffer(
+                maxSampleLength: (int)(parameters.MaxActiveDurationSeconds * source.SamplingRate),
+                frequency: source.SamplingRate);
+
+            audioClipBuffer
+                .OnInactive
+                .Subscribe(clip =>
+                {
+                    Log.Debug("[VAD.Sample] OnInactive and receive AudioClip and play.");
+                    audioSource.clip = clip;
+                    audioSource.Play();
+                })
+                .AddTo(this);
+
+            var buffer = new CompositeVoiceBuffer(
+                new WaveVoiceBuffer(this), // To wave file and Whisper transcription API.
+                audioClipBuffer // To AudioClip and AudioSource (echo debug).
+            );
+
             vad = new QueueingVoiceActivityDetector(
                 source: new UnityMicrophoneSource(),
-                buffer: new WaveVoiceBuffer(this),
-                maxQueueingTimeSeconds,
-                minQueueingTimeSeconds,
-                activeVolumeThreshold,
-                activationRateThreshold,
-                inactivationRateThreshold,
-                activationIntervalSeconds,
-                inactivationIntervalSeconds,
-                maxActiveDurationSeconds);
+                buffer: buffer,
+                parameters.MaxQueueingTimeSeconds,
+                parameters.MinQueueingTimeSeconds,
+                parameters.ActiveVolumeThreshold,
+                parameters.ActivationRateThreshold,
+                parameters.InactivationRateThreshold,
+                parameters.ActivationIntervalSeconds,
+                parameters.InactivationIntervalSeconds,
+                parameters.MaxActiveDurationSeconds);
         }
 
         private void OnDestroy()
@@ -82,7 +95,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
             if (streamQueue.TryDequeue(out var stream))
             {
                 Log.Debug("[VAD.Samples] Dequeue wave stream.");
-                
+
                 TranscribeAsync(stream, this.GetCancellationTokenOnDestroy())
                     .Forget();
             }
@@ -91,7 +104,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
         void IWaveStreamReceiver.OnReceive(Stream stream)
         {
             Log.Debug("[VAD.Samples] Enqueue wave stream.");
-            
+
             streamQueue.Enqueue(stream);
         }
 
@@ -105,10 +118,10 @@ namespace Mochineko.VoiceActivityDetection.Samples
             }
 
             Log.Debug("[VAD.Samples] Begin to transcribe for audio stream: {0} bytes.", stream.Length);
-            
+
             // Dispose stream when out of scope.
             await using var _ = stream;
-            
+
             // Transcribe speech into text by Whisper transcription API.
             var result = await policy
                 .ExecuteAsync(async innerCancellationToken
@@ -130,8 +143,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
                     var text = TranscriptionResponseBody.FromJson(success.Result)?.Text;
                     if (text != null)
                     {
-                        // Log.Debug("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
-                        Debug.LogFormat("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
+                        Log.Debug("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
                     }
 
                     break;

@@ -450,12 +450,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b71fdf0f1fe4e68a8328aeb9eb23908, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activeVolumeThreshold: 0.01
-  maxQueueingTimeSeconds: 1
-  minQueueingTimeSeconds: 0.5
-  activationRateThreshold: 0.6
-  inactivationRateThreshold: 0.4
-  activationIntervalSeconds: 0.5
-  inactivationIntervalSeconds: 0.5
-  maxActiveDurationSeconds: 10
+  parameters: {fileID: 11400000, guid: a6434a96cb3fac34d98641de4d6cd2a2, type: 2}
   audioSource: {fileID: 1508888600}

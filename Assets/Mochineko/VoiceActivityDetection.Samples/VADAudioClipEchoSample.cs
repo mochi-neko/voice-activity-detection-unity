@@ -13,28 +13,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
     internal sealed class VADAudioClipEchoSample : MonoBehaviour
     {
         [SerializeField]
-        private float activeVolumeThreshold = 0.01f;
-        
-        [SerializeField]
-        private float maxQueueingTimeSeconds = 1f;
-
-        [SerializeField]
-        private float minQueueingTimeSeconds = 0.5f;
-        
-        [SerializeField]
-        private float activationRateThreshold = 0.6f;
-        
-        [SerializeField]
-        private float inactivationRateThreshold = 0.4f;
-        
-        [SerializeField]
-        private float activationIntervalSeconds = 0.5f;
-        
-        [SerializeField]
-        private float inactivationIntervalSeconds = 0.5f;
-        
-        [SerializeField]
-        private float maxActiveDurationSeconds = 10f;
+        private VADParameters? parameters = null;
 
         [SerializeField]
         private AudioSource? audioSource = null;
@@ -43,6 +22,10 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
         private void Start()
         {
+            if (parameters == null)
+            {
+                throw new NullReferenceException(nameof(parameters));
+            }
             if (audioSource == null)
             {
                 throw new NullReferenceException(nameof(audioSource));
@@ -50,20 +33,20 @@ namespace Mochineko.VoiceActivityDetection.Samples
             
             IVoiceSource source = new UnityMicrophoneSource();
             var buffer = new AudioClipBuffer(
-                maxSampleLength: (int)(maxActiveDurationSeconds * source.SamplingRate),
+                maxSampleLength: (int)(parameters.MaxActiveDurationSeconds * source.SamplingRate),
                 frequency: source.SamplingRate);
             
             vad = new QueueingVoiceActivityDetector(
                 source,
                 buffer,
-                maxQueueingTimeSeconds,
-                minQueueingTimeSeconds,
-                activeVolumeThreshold,
-                activationRateThreshold,
-                inactivationRateThreshold,
-                activationIntervalSeconds,
-                inactivationIntervalSeconds,
-                maxActiveDurationSeconds);
+                parameters.MaxQueueingTimeSeconds,
+                parameters.MinQueueingTimeSeconds,
+                parameters.ActiveVolumeThreshold,
+                parameters.ActivationRateThreshold,
+                parameters.InactivationRateThreshold,
+                parameters.ActivationIntervalSeconds,
+                parameters.InactivationIntervalSeconds,
+                parameters.MaxActiveDurationSeconds);
 
             vad
                 .IsActive

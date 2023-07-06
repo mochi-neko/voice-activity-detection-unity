@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dffde2443bc4aa2a6d1155b1d78cd44, type: 3}
+  m_Name: SampleVADParameters
+  m_EditorClassIdentifier: 
+  activeVolumeThreshold: 0.005
+  maxQueueingTimeSeconds: 0.5
+  minQueueingTimeSeconds: 0.2
+  activationRateThreshold: 0.6
+  inactivationRateThreshold: 0.4
+  activationIntervalSeconds: 0.2
+  inactivationIntervalSeconds: 3
+  maxActiveDurationSeconds: 10

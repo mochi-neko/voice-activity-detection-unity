@@ -38,6 +38,7 @@ namespace Mochineko.VoiceActivityDetection
         /// <param name="source">Source of voice data.</param>
         /// <param name="buffer">Buffer of voice data.</param>
         /// <param name="maxQueueingTimeSeconds">Max time(sec) to queue voice segment.</param>
+        /// <param name="minQueueingTimeSeconds">Min time(sec) to queue voice segment to detect.</param>
         /// <param name="activeVolumeThreshold">Threshold of active voice volume by root mean square.</param>
         /// <param name="activationRateThreshold">Threshold of active rate in queue that changes into active state.</param>
         /// <param name="inactivationRateThreshold">Threshold of active rate in queue that changes into inactive state.</param>

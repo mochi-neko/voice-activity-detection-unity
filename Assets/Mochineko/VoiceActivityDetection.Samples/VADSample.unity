@@ -338,13 +338,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a094bc6e4d594a7c86ec89680006f459, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activeVolumeThreshold: 0.01
-  maxQueueingTimeSeconds: 1
-  activationRateThreshold: 0.6
-  inactivationRateThreshold: 0.4
-  activationIntervalSeconds: 0.5
-  inactivationIntervalSeconds: 2
-  maxActiveDurationSeconds: 10
+  parameters: {fileID: 11400000, guid: a6434a96cb3fac34d98641de4d6cd2a2, type: 2}
 --- !u!4 &1508888599
 Transform:
   m_ObjectHideFlags: 0

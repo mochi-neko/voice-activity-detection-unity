@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using UniRx;
 using Unity.Logging;
 using UnityEngine;
@@ -12,44 +13,28 @@ namespace Mochineko.VoiceActivityDetection.Samples
     internal sealed class VADSample : MonoBehaviour
     {
         [SerializeField]
-        private float activeVolumeThreshold = 0.01f;
-        
-        [SerializeField]
-        private float maxQueueingTimeSeconds = 1f;
-
-        [SerializeField]
-        private float minQueueingTimeSeconds = 0.5f;
-        
-        [SerializeField]
-        private float activationRateThreshold = 0.6f;
-        
-        [SerializeField]
-        private float inactivationRateThreshold = 0.4f;
-        
-        [SerializeField]
-        private float activationIntervalSeconds = 0.5f;
-        
-        [SerializeField]
-        private float inactivationIntervalSeconds = 0.5f;
-        
-        [SerializeField]
-        private float maxActiveDurationSeconds = 10f;
+        private VADParameters? parameters = null;
 
         private IVoiceActivityDetector? vad;
 
         private void Start()
         {
+            if (parameters == null)
+            {
+                throw new NullReferenceException(nameof(parameters));
+            }
+            
             vad = new QueueingVoiceActivityDetector(
                 source: new UnityMicrophoneSource(),
                 buffer: new NullVoiceBuffer(),
-                maxQueueingTimeSeconds,
-                minQueueingTimeSeconds,
-                activeVolumeThreshold,
-                activationRateThreshold,
-                inactivationRateThreshold,
-                activationIntervalSeconds,
-                inactivationIntervalSeconds,
-                maxActiveDurationSeconds);
+                parameters.MaxQueueingTimeSeconds,
+                parameters.MinQueueingTimeSeconds,
+                parameters.ActiveVolumeThreshold,
+                parameters.ActivationRateThreshold,
+                parameters.InactivationRateThreshold,
+                parameters.ActivationIntervalSeconds,
+                parameters.InactivationIntervalSeconds,
+                parameters.MaxActiveDurationSeconds);
 
             vad
                 .IsActive
