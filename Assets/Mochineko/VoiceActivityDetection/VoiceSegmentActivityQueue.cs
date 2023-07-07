@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Mochineko.VoiceActivityDetection
@@ -12,6 +11,8 @@ namespace Mochineko.VoiceActivityDetection
     {
         private readonly ConcurrentQueue<VoiceSegmentActivity> queue = new();
         private readonly float maxQueueingTimeSeconds;
+
+        public float TotalTimeSeconds { get; private set; }
         
         public VoiceSegmentActivityQueue(float maxQueueingTimeSeconds)
         {
@@ -21,22 +22,13 @@ namespace Mochineko.VoiceActivityDetection
         public void Enqueue(VoiceSegmentActivity activity)
         {
             queue.Enqueue(activity);
+            TotalTimeSeconds += activity.timeSeconds;
 
-            while (TotalTimeSeconds() > maxQueueingTimeSeconds)
+            while (TotalTimeSeconds > maxQueueingTimeSeconds)
             {
-                queue.TryDequeue(out var _);
+                queue.TryDequeue(out var dequeued);
+                TotalTimeSeconds -= dequeued.timeSeconds;
             }
-        }
-
-        public float TotalTimeSeconds()
-        {
-            var totalTimeSeconds = 0f;    
-            foreach (var activity in queue)
-            {
-                totalTimeSeconds += activity.timeSeconds;
-            }
-
-            return totalTimeSeconds;
         }
 
         public float ActiveTimeRate()
@@ -46,18 +38,16 @@ namespace Mochineko.VoiceActivityDetection
                 return 0f;
             }
             
-            var totalTimeSeconds = 0f;
             var activeTimeSeconds = 0f;
             foreach (var activity in queue)
             {
-                totalTimeSeconds += activity.timeSeconds;
                 if (activity.isActive)
                 {
                     activeTimeSeconds += activity.timeSeconds;
                 }
             }
 
-            return activeTimeSeconds / totalTimeSeconds;
+            return activeTimeSeconds / TotalTimeSeconds;
         }
     }
 }

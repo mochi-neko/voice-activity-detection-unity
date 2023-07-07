@@ -15,7 +15,8 @@ namespace Mochineko.VoiceActivityDetection
     {
         private readonly IVoiceSource source;
         private readonly IVoiceBuffer buffer;
-        private readonly VoiceSegmentActivityQueue queue;
+        private readonly VoiceSegmentActivityQueue activityQueue;
+        private readonly VoiceSegmentQueue activationQueue;
         private readonly float minQueueingTimeSeconds;
         private readonly float activeVolumeThreshold;
         private readonly float activationRateThreshold;
@@ -59,7 +60,8 @@ namespace Mochineko.VoiceActivityDetection
         {
             this.source = source;
             this.buffer = buffer;
-            this.queue = new VoiceSegmentActivityQueue(maxQueueingTimeSeconds);
+            this.activityQueue = new VoiceSegmentActivityQueue(maxQueueingTimeSeconds);
+            this.activationQueue = new VoiceSegmentQueue(maxQueueingTimeSeconds, this.source.SamplingRate);
             this.minQueueingTimeSeconds = minQueueingTimeSeconds;
             this.activeVolumeThreshold = activeVolumeThreshold;
             this.activationRateThreshold = activationRateThreshold;
@@ -99,19 +101,20 @@ namespace Mochineko.VoiceActivityDetection
             var isActiveSegment = volume >= activeVolumeThreshold;
             Log.Verbose("[VAD] Is active segment: {0}.", isActiveSegment);
 
-            queue.Enqueue(new VoiceSegmentActivity(
+            activityQueue.Enqueue(new VoiceSegmentActivity(
                 isActiveSegment,
                 length: segment.length,
                 this.source.SamplingRate,
                 this.source.Channels)
             );
 
-            if (queue.TotalTimeSeconds() < minQueueingTimeSeconds)
+            // NOTE: Remove initial noise when queue length is short.
+            if (activityQueue.TotalTimeSeconds < minQueueingTimeSeconds)
             {
                 return;
             }
 
-            var activeRate = queue.ActiveTimeRate();
+            var activeRate = activityQueue.ActiveTimeRate();
             Log.Verbose("[VAD] Active rate in queue: {0}.", activeRate);
 
             // Change to active
@@ -121,9 +124,18 @@ namespace Mochineko.VoiceActivityDetection
             {
                 Log.Debug("[VAD] Activated.");
                 await this.buffer.OnActiveAsync(this.cancellationTokenSource.Token);
+
+                // Write buffers of segments that are buffered while inactive state just before activation.
+                while (activationQueue.TryDequeue(out var queued) &&
+                       !cancellationTokenSource.IsCancellationRequested)
+                {
+                    await this.buffer.BufferAsync(queued, cancellationTokenSource.Token);
+                }
+
                 this.isActive.Value = true;
                 intervalStopwatch.Restart();
                 totalDurationStopwatch.Restart();
+                return;
             }
             // Change to inactive
             else if (
@@ -142,6 +154,11 @@ namespace Mochineko.VoiceActivityDetection
             if (isActive.Value)
             {
                 await this.buffer.BufferAsync(segment, this.cancellationTokenSource.Token);
+            }
+            else
+            {
+                // NOTE: Copy segment data because buffer array is reused.
+                this.activationQueue.Enqueue(segment.Copy());
             }
         }
     }

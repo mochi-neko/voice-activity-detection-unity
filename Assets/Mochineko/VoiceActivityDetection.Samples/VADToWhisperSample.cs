@@ -143,7 +143,9 @@ namespace Mochineko.VoiceActivityDetection.Samples
                     var text = TranscriptionResponseBody.FromJson(success.Result)?.Text;
                     if (text != null)
                     {
-                        Log.Debug("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
+                        // FIXME: Log.Debug is not working at this.
+                        //Log.Debug("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
+                        Debug.LogFormat("[VAD.Samples] Succeeded to transcribe into: {0}.", text);
                     }
 
                     break;
@@ -151,13 +153,17 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 // Retryable failure
                 case IUncertainRetryableResult<string> retryable:
                 {
-                    Log.Error("[VAD.Samples] Retryable failed to transcribe because -> {0}.", retryable.Message);
+                    // FIXME: Log.Error is not working at this.
+                    //Log.Error("[VAD.Samples] Retryable failed to transcribe because -> {0}.", retryable.Message);
+                    Debug.LogErrorFormat("[VAD.Samples] Retryable failed to transcribe because -> {0}.", retryable.Message);
                     break;
                 }
                 // Failure
                 case IUncertainFailureResult<string> failure:
                 {
-                    Log.Error("[VAD.Samples] Failed to transcribe because -> {0}.", failure.Message);
+                    // FIXME: Log.Error is not working at this.
+                    //Log.Error("[VAD.Samples] Failed to transcribe because -> {0}.", failure.Message);
+                    Debug.LogErrorFormat("[VAD.Samples] Failed to transcribe because -> {0}.", failure.Message);
                     break;
                 }
                 default:
