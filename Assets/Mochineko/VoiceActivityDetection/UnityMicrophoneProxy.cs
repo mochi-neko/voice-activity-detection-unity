@@ -1,5 +1,7 @@
 #nullable enable
 using System;
+using System.Linq;
+using Unity.Logging;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
@@ -25,7 +27,17 @@ namespace Mochineko.VoiceActivityDetection
             string? deviceName = null,
             int loopLengthSeconds = 1)
         {
+            if (!Microphone.devices.Any())
+            {
+                throw new InvalidOperationException("No microphone device found.");
+            }
+            
             this.deviceName = deviceName;
+
+            if (this.deviceName == null)
+            {
+                Log.Debug("[VAD] Use default microphone device: {0}.", Microphone.devices[0]);
+            }
             
             // NOTE: Because UnityEngine.Microphone updates only latest AudioClip instance, if you want to use multiple recorder, you should use this proxy.
             this.AudioClip = Microphone.Start(this.deviceName, loop: true, loopLengthSeconds, GetMaxFrequency());
