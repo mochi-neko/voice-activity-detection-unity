@@ -101,7 +101,7 @@ namespace Mochineko.VoiceActivityDetection
 
             await writer.FlushAsync(cancellationToken);
 
-            // NOTE: Please dispose stream by receiver.
+            // NOTE: Please dispose copied stream by receiver.
             var copiedStream = new MemoryStream();
             stream.Seek(offset: 0, SeekOrigin.Begin);
             await stream.CopyToAsync(copiedStream, cancellationToken);

@@ -1,18 +1,25 @@
 # voice-activity-detection-unity
-A voice activity detection library for Unity.
+A voice activity detection (VAD) library for Unity.
 
 ## Features
 
+Records voice data from any sources (`IVoiceSource`, e.g. recording by `UnityEngine.Microphone`)
+ detects voice activity by any logic,
+ and provides voice data to any buffers (`IVoiceBuffer`, e.g. buffering to WAV file) when voice is active.
+
+You can customize voice sources, voice buffers,
+ and voice activity detection logics adjusting your use cases.
+
 - Sources
-  - [x] `UnityEngine.Microphone`
+  - [x] `UnityEngine.Microphone` -> [UnityMicrophoneSource](./Assets/Mochineko/VoiceActivityDetection/UnityMicrophoneSource.cs)
   - [ ] `AudioSource`
   - [ ] Native microphone
 - Buffers
-  - [x] Null (Detection only)
-  - [x] Wave file (by [simple-audio-codec-unity](https://github.com/mochi-neko/simple-audio-codec-unity) / [NAudio](https://github.com/naudio/NAudio))
-  - [ ] AudioClip
+  - [x] Null (Detection only) -> [NullVoiceBuffer](./Assets/Mochineko/VoiceActivityDetection/NullVoiceBuffer.cs)
+  - [x] Wave file (by [NAudio](https://github.com/naudio/NAudio)) -> [WaveFileVoiceBuffer](./Assets/Mochineko/VoiceActivityDetection/WaveVoiceBuffer.cs)
+  - [x] AudioClip -> [AudioClipBuffer](./Assets/Mochineko/VoiceActivityDetection/AudioClipBuffer.cs)
 - Voice activity detection logics
-  - [x] Queuing-based simple VAD logic
+  - [x] Queueing-based simple VAD logic -> [QueueingVoiceActivityDetector](./Assets/Mochineko/VoiceActivityDetection/QueueingVoiceActivityDetector.cs)
 
 ## How to import by UnityPackageManager
 
@@ -21,7 +28,7 @@ Add following dependencies to your `/Packages/manifest.json`.
 ```json
 {
     "dependencies": {
-        "com.mochineko.voice-activity-detection": "https://github.com/mochi-neko/voice-activity-detection-unity?path=/Assets/Mochineko/VoiceActivityDetection#0.1.0",
+        "com.mochineko.voice-activity-detection": "https://github.com/mochi-neko/voice-activity-detection-unity?path=/Assets/Mochineko/VoiceActivityDetection#0.2.0",
         ...
     }
 }
@@ -29,8 +36,9 @@ Add following dependencies to your `/Packages/manifest.json`.
 
 ## Samples
 
-- [A simple implementation of VAD as component](./Assets/Mochineko/VoiceActivityDetection.Samples/VADSample.cs)
-- [A sample implementation of VAD with OpenAI/Whisper API](./Assets/Mochineko/VoiceActivityDetection.Samples/VADToWhisperSample.cs)
+- [VAD as component](./Assets/Mochineko/VoiceActivityDetection.Samples/VADSample.cs)
+- [VAD with echo](./Assets/Mochineko/VoiceActivityDetection.Samples/VADAudioClipEchoSample.cs)
+- [VAD with OpenAI/Whisper API transcription](./Assets/Mochineko/VoiceActivityDetection.Samples/VADToWhisperSample.cs)
 
 See also [Samples](./Assets/Mochineko/VoiceActivityDetection.Samples).
 

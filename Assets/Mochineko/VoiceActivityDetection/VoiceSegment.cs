@@ -53,6 +53,10 @@ namespace Mochineko.VoiceActivityDetection
             return Mathf.Sqrt(sum / length); // Root mean square
         }
 
+        /// <summary>
+        /// Copies deeply this voice segment data.
+        /// </summary>
+        /// <returns></returns>
         public VoiceSegment Copy()
         {
             var copy = new float[length];

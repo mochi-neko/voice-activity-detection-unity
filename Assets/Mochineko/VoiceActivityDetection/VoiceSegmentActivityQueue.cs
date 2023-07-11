@@ -5,13 +5,13 @@ using System.Linq;
 namespace Mochineko.VoiceActivityDetection
 {
     /// <summary>
-    /// Queue of voice segment activity.
+    /// A queue of <see cref="VoiceSegmentActivity"/>.
     /// </summary>
     internal sealed class VoiceSegmentActivityQueue
     {
         private readonly ConcurrentQueue<VoiceSegmentActivity> queue = new();
         private readonly float maxQueueingTimeSeconds;
-
+        
         public float TotalTimeSeconds { get; private set; }
         
         public VoiceSegmentActivityQueue(float maxQueueingTimeSeconds)

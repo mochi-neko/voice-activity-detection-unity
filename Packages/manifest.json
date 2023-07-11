@@ -3,7 +3,6 @@
     "com.boundfoxstudios.fluentassertions": "https://github.com/BoundfoxStudios/fluentassertions-unity.git#upm",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
-    "com.mochineko.simple-audio-codec-unity": "https://github.com/mochi-neko/simple-audio-codec-unity.git?path=/Assets/Mochineko/SimpleAudioCodec#0.2.0",
     "com.naudio.core": "https://github.com/mochi-neko/simple-audio-codec-unity.git?path=/Assets/NAudio/NAudio.Core#0.2.0",
     "com.mochineko.relent": "https://github.com/mochi-neko/Relent.git?path=/Assets/Mochineko/Relent#0.2.0",
     "com.mochineko.whisper-api": "https://github.com/mochi-neko/Whisper-API-unity.git?path=/Assets/Mochineko/WhisperAPI#1.0.0",

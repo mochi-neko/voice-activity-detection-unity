@@ -21,13 +21,6 @@
       "dependencies": {},
       "hash": "5fd87387912763429e4c8008157ed6a654c3093c"
     },
-    "com.mochineko.simple-audio-codec-unity": {
-      "version": "https://github.com/mochi-neko/simple-audio-codec-unity.git?path=/Assets/Mochineko/SimpleAudioCodec#0.2.0",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "fb76f048a78ef9fa4e0d00df6f184d1b7a64042b"
-    },
     "com.mochineko.whisper-api": {
       "version": "https://github.com/mochi-neko/Whisper-API-unity.git?path=/Assets/Mochineko/WhisperAPI#1.0.0",
       "depth": 0,

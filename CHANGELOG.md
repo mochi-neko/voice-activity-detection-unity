@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2023-07-11
+
+## Added
+- Add echo sample to test VAD with hearing microphone audio.
+- Add composite buffer to combine multiple buffers.
+- Add validations of `UnityEngine.Microphone`.
+
+## Changed
+- Improve VAD logic and parameters.
+- Improve recording of `UnityEngine.Microphone` when just before activated.
+
+## Fixed
+- Fix data duplication of `UnityEngine.Microphone` when recording position is not changed.
+
 ## [0.1.0] - 2023-07-05
 
 ### Added

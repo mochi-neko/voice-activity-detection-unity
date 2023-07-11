@@ -3,6 +3,9 @@ using System.Collections.Concurrent;
 
 namespace Mochineko.VoiceActivityDetection
 {
+    /// <summary>
+    /// A queue of <see cref="VoiceSegment"/>.
+    /// </summary>
     internal sealed class VoiceSegmentQueue
     {
         private readonly ConcurrentQueue<VoiceSegment> queue = new();
