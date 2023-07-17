@@ -3,7 +3,7 @@ A voice activity detection (VAD) library for Unity.
 
 ## Features
 
-Records voice data from any sources (`IVoiceSource`, e.g. recording by `UnityEngine.Microphone`)
+Records voice data from any sources (`IVoiceSource`, e.g. recording by `UnityEngine.Microphone`),
  detects voice activity by any logic,
  and provides voice data to any buffers (`IVoiceBuffer`, e.g. buffering to WAV file) when voice is active.
 
