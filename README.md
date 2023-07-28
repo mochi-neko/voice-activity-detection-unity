@@ -12,7 +12,7 @@ You can customize voice sources, voice buffers,
 
 - Sources
   - [x] `UnityEngine.Microphone` -> [UnityMicrophoneSource](./Assets/Mochineko/VoiceActivityDetection/UnityMicrophoneSource.cs)
-  - [ ] `AudioSource`
+  - [x] `UnityEngine.AudioSource` (`OnAudioFilterRead` callback) -> [UnityAudioSource](./Assets/Mochineko/VoiceActivityDetection/UnityAudioSource.cs)
   - [ ] Native microphone
 - Buffers
   - [x] Null (Detection only) -> [NullVoiceBuffer](./Assets/Mochineko/VoiceActivityDetection/NullVoiceBuffer.cs)
@@ -28,7 +28,7 @@ Add following dependencies to your `/Packages/manifest.json`.
 ```json
 {
     "dependencies": {
-        "com.mochineko.voice-activity-detection": "https://github.com/mochi-neko/voice-activity-detection-unity.git?path=/Assets/Mochineko/VoiceActivityDetection#0.2.1",
+        "com.mochineko.voice-activity-detection": "https://github.com/mochi-neko/voice-activity-detection-unity.git?path=/Assets/Mochineko/VoiceActivityDetection#0.3.0",
         "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
         "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
         "com.naudio.core": "https://github.com/mochi-neko/simple-audio-codec-unity.git?path=/Assets/NAudio/NAudio.Core#0.2.0",

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-07-29
+
+### Added
+- Add operation to change activity of VAD and voice source (not voice activity).
+- Add support for `UnityEngine.AudioSource` as voice source.
+
+### Changed
+- Rename methods and properties of `VoiceSource` and `VoiceActivityDetector` to be more intuitive.
+
 ## [0.2.1] - 2023-07-12
 
 ### Fixed
