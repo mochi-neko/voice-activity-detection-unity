@@ -30,12 +30,12 @@ namespace Mochineko.VoiceActivityDetection
                 {
                     return;
                 }
-                
+
                 await buffer.BufferAsync(segment, cancellationToken);
             }
         }
 
-        async UniTask IVoiceBuffer.OnActiveAsync(CancellationToken cancellationToken)
+        async UniTask IVoiceBuffer.OnVoiceActiveAsync(CancellationToken cancellationToken)
         {
             foreach (var buffer in buffers)
             {
@@ -43,12 +43,12 @@ namespace Mochineko.VoiceActivityDetection
                 {
                     return;
                 }
-                
-                await buffer.OnActiveAsync(cancellationToken);
+
+                await buffer.OnVoiceActiveAsync(cancellationToken);
             }
         }
 
-        async UniTask IVoiceBuffer.OnInactiveAsync(CancellationToken cancellationToken)
+        async UniTask IVoiceBuffer.OnVoiceInactiveAsync(CancellationToken cancellationToken)
         {
             foreach (var buffer in buffers)
             {
@@ -56,11 +56,11 @@ namespace Mochineko.VoiceActivityDetection
                 {
                     return;
                 }
-                
-                await buffer.OnInactiveAsync(cancellationToken);
+
+                await buffer.OnVoiceInactiveAsync(cancellationToken);
             }
         }
-        
+
         void IDisposable.Dispose()
         {
             foreach (var buffer in buffers)

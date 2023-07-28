@@ -69,7 +69,7 @@ namespace Mochineko.VoiceActivityDetection
             await UniTask.SwitchToMainThread(cancellationToken);
         }
 
-        UniTask IVoiceBuffer.OnActiveAsync(CancellationToken cancellationToken)
+        UniTask IVoiceBuffer.OnVoiceActiveAsync(CancellationToken cancellationToken)
         {
             Reset();
 
@@ -87,7 +87,7 @@ namespace Mochineko.VoiceActivityDetection
             return UniTask.CompletedTask;
         }
 
-        async UniTask IVoiceBuffer.OnInactiveAsync(CancellationToken cancellationToken)
+        async UniTask IVoiceBuffer.OnVoiceInactiveAsync(CancellationToken cancellationToken)
         {
             if (stream == null)
             {

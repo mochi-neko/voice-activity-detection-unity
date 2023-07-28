@@ -56,7 +56,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 frequency: source.SamplingRate);
 
             audioClipBuffer
-                .OnInactive
+                .OnVoiceInactive
                 .Subscribe(clip =>
                 {
                     Log.Debug("[VAD.Sample] OnInactive and receive AudioClip and play.");

@@ -23,13 +23,13 @@ namespace Mochineko.VoiceActivityDetection
         /// </summary>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
-        UniTask OnActiveAsync(CancellationToken cancellationToken);
-        
+        UniTask OnVoiceActiveAsync(CancellationToken cancellationToken);
+
         /// <summary>
         /// Called when voice has been inactive.
         /// </summary>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
-        UniTask OnInactiveAsync(CancellationToken cancellationToken);
+        UniTask OnVoiceInactiveAsync(CancellationToken cancellationToken);
     }
 }

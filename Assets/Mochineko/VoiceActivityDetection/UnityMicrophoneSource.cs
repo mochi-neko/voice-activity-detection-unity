@@ -17,10 +17,11 @@ namespace Mochineko.VoiceActivityDetection
         private readonly int frequency;
         private int currentPosition;
         private int lastPosition;
+        private bool isActive = true;
 
         private readonly Subject<VoiceSegment> onSegmentRead = new();
         IObservable<VoiceSegment> IVoiceSource.OnSegmentRead => onSegmentRead;
-        
+
         int IVoiceSource.SamplingRate => frequency;
         int IVoiceSource.Channels => 1;
 
@@ -42,12 +43,23 @@ namespace Mochineko.VoiceActivityDetection
             this.readBuffer = new float[readBufferSize];
         }
 
+        void IDisposable.Dispose()
+        {
+            this.proxy.Dispose();
+            this.onSegmentRead.Dispose();
+        }
+
         void IVoiceSource.Update()
         {
             currentPosition = this.proxy.GetSamplePosition();
             if (currentPosition < 0)
             {
                 lastPosition = 0;
+                return;
+            }
+
+            if (!isActive)
+            {
                 return;
             }
 
@@ -67,9 +79,9 @@ namespace Mochineko.VoiceActivityDetection
             lastPosition = currentPosition;
         }
 
-        void IDisposable.Dispose()
+        void IVoiceSource.SetSourceActive(bool isActive)
         {
-            this.proxy.Dispose();
+            this.isActive = isActive;
         }
 
         private void ReadCurrentSamples()
@@ -79,7 +91,7 @@ namespace Mochineko.VoiceActivityDetection
             {
                 return;
             }
-            
+
             if (length > 0)
             {
                 var span = this.loopBuffer.AsSpan(lastPosition..currentPosition);

@@ -18,8 +18,8 @@ namespace Mochineko.VoiceActivityDetection
 
         private int position;
 
-        private readonly Subject<AudioClip> onInactive = new();
-        public IObservable<AudioClip> OnInactive => onInactive;
+        private readonly Subject<AudioClip> onVoiceInactive = new();
+        public IObservable<AudioClip> OnVoiceInactive => onVoiceInactive;
 
         /// <summary>
         /// Creates a new instance of <see cref="AudioClipBuffer"/>.
@@ -50,7 +50,7 @@ namespace Mochineko.VoiceActivityDetection
             return UniTask.CompletedTask;
         }
 
-        UniTask IVoiceBuffer.OnActiveAsync(CancellationToken cancellationToken)
+        UniTask IVoiceBuffer.OnVoiceActiveAsync(CancellationToken cancellationToken)
         {
             this.audioClip.SetData(this.resetBuffer, offsetSamples: 0);
 
@@ -59,9 +59,9 @@ namespace Mochineko.VoiceActivityDetection
             return UniTask.CompletedTask;
         }
 
-        UniTask IVoiceBuffer.OnInactiveAsync(CancellationToken cancellationToken)
+        UniTask IVoiceBuffer.OnVoiceInactiveAsync(CancellationToken cancellationToken)
         {
-            onInactive.OnNext(this.audioClip);
+            onVoiceInactive.OnNext(this.audioClip);
 
             return UniTask.CompletedTask;
         }

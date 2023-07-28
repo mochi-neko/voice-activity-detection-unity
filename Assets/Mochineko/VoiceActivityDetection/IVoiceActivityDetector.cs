@@ -12,11 +12,17 @@ namespace Mochineko.VoiceActivityDetection
         /// <summary>
         /// Current voice activity.
         /// </summary>
-        IReadOnlyReactiveProperty<bool> IsActive { get; }
-        
+        IReadOnlyReactiveProperty<bool> VoiceIsActive { get; }
+
         /// <summary>
         /// Updates the state of the detection.
         /// </summary>
         void Update();
+
+        /// <summary>
+        /// Sets the detector active or inactive.
+        /// </summary>
+        /// <param name="isActive"></param>
+        void SetDetectorActive(bool isActive);
     }
 }

@@ -13,12 +13,12 @@ namespace Mochineko.VoiceActivityDetection
         UniTask IVoiceBuffer.BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
             => UniTask.CompletedTask;
 
-        UniTask IVoiceBuffer.OnActiveAsync(CancellationToken cancellationToken)
+        UniTask IVoiceBuffer.OnVoiceActiveAsync(CancellationToken cancellationToken)
             => UniTask.CompletedTask;
 
-        UniTask IVoiceBuffer.OnInactiveAsync(CancellationToken cancellationToken)
+        UniTask IVoiceBuffer.OnVoiceInactiveAsync(CancellationToken cancellationToken)
             => UniTask.CompletedTask;
-        
+
         void IDisposable.Dispose()
         {
         }

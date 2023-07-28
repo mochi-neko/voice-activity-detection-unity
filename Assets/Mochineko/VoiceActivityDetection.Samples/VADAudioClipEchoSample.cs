@@ -49,12 +49,12 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 parameters.MaxActiveDurationSeconds);
 
             vad
-                .IsActive
+                .VoiceIsActive
                 .Subscribe(isActive => Log.Debug("[VAD.Sample] IsActive: {0}", isActive))
                 .AddTo(this);
 
             buffer
-                .OnInactive
+                .OnVoiceInactive
                 .Subscribe(clip =>
                 {
                     Log.Debug("[VAD.Sample] OnInactive and receive AudioClip and play.");
