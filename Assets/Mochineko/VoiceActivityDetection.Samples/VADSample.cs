@@ -16,6 +16,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
         private VADParameters? parameters = null;
 
         private IVoiceActivityDetector? vad;
+        private UnityMicrophoneProxy? proxy;
 
         private void Start()
         {
@@ -23,9 +24,11 @@ namespace Mochineko.VoiceActivityDetection.Samples
             {
                 throw new NullReferenceException(nameof(parameters));
             }
-            
+
+            proxy = new UnityMicrophoneProxy();
+
             vad = new QueueingVoiceActivityDetector(
-                source: new UnityMicrophoneSource(),
+                source: new UnityMicrophoneSource(proxy),
                 buffer: new NullVoiceBuffer(),
                 parameters.MaxQueueingTimeSeconds,
                 parameters.MinQueueingTimeSeconds,
@@ -45,6 +48,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
         private void OnDestroy()
         {
             vad?.Dispose();
+            proxy?.Dispose();
         }
 
         private void Update()

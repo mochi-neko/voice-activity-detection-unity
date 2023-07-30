@@ -4,6 +4,9 @@ using UniRx;
 
 namespace Mochineko.VoiceActivityDetection
 {
+    /// <summary>
+    /// A voice source that uses UnityEngine.AudioSource via OnAudioFilterRead().
+    /// </summary>
     public sealed class UnityAudioSource : IVoiceSource
     {
         private readonly float[] readBuffer;
@@ -44,6 +47,11 @@ namespace Mochineko.VoiceActivityDetection
             this.isActive = isActive;
         }
 
+        /// <summary>
+        /// Redirects OnAudioFilterRead() to OnSegmentRead.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="channels"></param>
         public void OnAudioFilterRead(float[] data, int channels)
         {
             if (!isActive)

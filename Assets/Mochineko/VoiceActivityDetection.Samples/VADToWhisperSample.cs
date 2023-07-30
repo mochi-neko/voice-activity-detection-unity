@@ -26,6 +26,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
         [SerializeField]
         private AudioSource? audioSource = null;
 
+        private UnityMicrophoneProxy? proxy;
         private IVoiceActivityDetector? vad;
 
         private readonly Queue<Stream> streamQueue = new();
@@ -49,7 +50,9 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 throw new NullReferenceException(nameof(audioSource));
             }
 
-            IVoiceSource source = new UnityMicrophoneSource();
+            proxy = new UnityMicrophoneProxy();
+
+            IVoiceSource source = new UnityMicrophoneSource(proxy);
 
             var audioClipBuffer = new AudioClipBuffer(
                 maxSampleLength: (int)(parameters.MaxActiveDurationSeconds * source.SamplingRate),
@@ -71,8 +74,8 @@ namespace Mochineko.VoiceActivityDetection.Samples
             );
 
             vad = new QueueingVoiceActivityDetector(
-                source: new UnityMicrophoneSource(),
-                buffer: buffer,
+                source,
+                buffer,
                 parameters.MaxQueueingTimeSeconds,
                 parameters.MinQueueingTimeSeconds,
                 parameters.ActiveVolumeThreshold,
@@ -86,6 +89,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
         private void OnDestroy()
         {
             vad?.Dispose();
+            proxy?.Dispose();
         }
 
         private void Update()
