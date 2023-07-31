@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Rename methods and properties of `VoiceSource` and `VoiceActivityDetector` to be more intuitive.
 - Exclude `UnityMicrophoneProxy` from `UnityMicrophoneSource` to be enable to share proxy instance.
+- Enhance parameter validations.
 
 ## [0.2.1] - 2023-07-12
 
