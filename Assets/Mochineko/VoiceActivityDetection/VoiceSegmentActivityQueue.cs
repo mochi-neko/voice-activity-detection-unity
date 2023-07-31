@@ -11,14 +11,14 @@ namespace Mochineko.VoiceActivityDetection
     {
         private readonly ConcurrentQueue<VoiceSegmentActivity> queue = new();
         private readonly float maxQueueingTimeSeconds;
-        
+
         public float TotalTimeSeconds { get; private set; }
-        
+
         public VoiceSegmentActivityQueue(float maxQueueingTimeSeconds)
         {
             this.maxQueueingTimeSeconds = maxQueueingTimeSeconds;
         }
-        
+
         public void Enqueue(VoiceSegmentActivity activity)
         {
             queue.Enqueue(activity);
@@ -37,7 +37,7 @@ namespace Mochineko.VoiceActivityDetection
             {
                 return 0f;
             }
-            
+
             var activeTimeSeconds = 0f;
             foreach (var activity in queue)
             {
@@ -48,6 +48,12 @@ namespace Mochineko.VoiceActivityDetection
             }
 
             return activeTimeSeconds / TotalTimeSeconds;
+        }
+
+        public void Clear()
+        {
+            queue.Clear();
+            TotalTimeSeconds = 0f;
         }
     }
 }

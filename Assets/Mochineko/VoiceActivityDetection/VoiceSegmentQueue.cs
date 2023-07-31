@@ -12,12 +12,12 @@ namespace Mochineko.VoiceActivityDetection
         private readonly int maxQueueingLength;
 
         private int currentLength = 0;
-        
+
         public VoiceSegmentQueue(float maxQueueingTimeSeconds, int frequency)
         {
             this.maxQueueingLength = (int)(maxQueueingTimeSeconds * frequency);
         }
-        
+
         public void Enqueue(VoiceSegment segment)
         {
             queue.Enqueue(segment);
@@ -39,6 +39,12 @@ namespace Mochineko.VoiceActivityDetection
             }
 
             return result;
+        }
+
+        public void Clear()
+        {
+            queue.Clear();
+            currentLength = 0;
         }
     }
 }
