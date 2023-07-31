@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using UniRx;
+using Unity.Logging;
 
 namespace Mochineko.VoiceActivityDetection
 {
@@ -11,9 +12,10 @@ namespace Mochineko.VoiceActivityDetection
     {
         private readonly float[] readBuffer;
         private readonly bool mute;
+        private readonly int samplingRate;
 
         private int channels;
-        private bool isActive;
+        private bool isActive = true;
 
         private readonly Subject<VoiceSegment> onSegmentRead = new();
         IObservable<VoiceSegment> IVoiceSource.OnSegmentRead => onSegmentRead;
@@ -24,6 +26,7 @@ namespace Mochineko.VoiceActivityDetection
         {
             this.readBuffer = new float[readBufferSize];
             this.mute = mute;
+            this.samplingRate = UnityEngine.AudioSettings.outputSampleRate;
         }
 
         void IDisposable.Dispose()
@@ -32,10 +35,10 @@ namespace Mochineko.VoiceActivityDetection
         }
 
         int IVoiceSource.SamplingRate
-            => UnityEngine.AudioSettings.outputSampleRate;
+            => this.samplingRate;
 
         int IVoiceSource.Channels
-            => channels;
+            => 1;
 
         void IVoiceSource.Update()
         {
@@ -59,17 +62,15 @@ namespace Mochineko.VoiceActivityDetection
                 return;
             }
 
-            this.channels = channels;
-
             // Read data with buffer
             var position = 0;
             while (position < data.Length)
             {
-                Array.Clear(readBuffer, 0, readBuffer.Length);
+                Array.Clear(readBuffer, index: 0, readBuffer.Length);
 
                 var readLength = Math.Min(readBuffer.Length, data.Length - position);
 
-                Array.Copy(data, position, readBuffer, 0, readLength);
+                Array.Copy(data, position, readBuffer, destinationIndex: 0, readLength);
 
                 onSegmentRead.OnNext(new VoiceSegment(readBuffer, readLength));
 
