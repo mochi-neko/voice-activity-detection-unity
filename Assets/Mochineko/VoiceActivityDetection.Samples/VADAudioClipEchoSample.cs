@@ -60,7 +60,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 .OnVoiceInactive
                 .Subscribe(clip =>
                 {
-                    Log.Debug("[VAD.Sample] OnInactive and receive AudioClip and play.");
+                    Log.Info("[VAD.Sample] OnInactive and receive AudioClip and play.");
                     audioSource.clip = clip;
                     audioSource.Play();
                 })

@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Collections.Concurrent;
 
 namespace Mochineko.VoiceActivityDetection
@@ -13,8 +14,24 @@ namespace Mochineko.VoiceActivityDetection
 
         private int currentLength = 0;
 
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="maxQueueingTimeSeconds"></param>
+        /// <param name="frequency"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public VoiceSegmentQueue(float maxQueueingTimeSeconds, int frequency)
         {
+            if (maxQueueingTimeSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxQueueingTimeSeconds), maxQueueingTimeSeconds, "maxQueueingTimeSeconds must be positive value.");
+            }
+
+            if (frequency <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(frequency), frequency, "frequency must be positive value.");
+            }
+
             this.maxQueueingLength = (int)(maxQueueingTimeSeconds * frequency);
         }
 

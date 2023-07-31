@@ -34,7 +34,9 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 throw new NullReferenceException(nameof(audioSource));
             }
 
-            source = new UnityAudioSource();
+            Application.targetFrameRate = 60;
+
+            source = new UnityAudioSource(readBufferSize: 2048, mute: false);
 
             vad = new QueueingVoiceActivityDetector(
                 source: source,
@@ -50,7 +52,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
             vad
                 .VoiceIsActive
-                .Subscribe(isActive => Log.Debug("[VAD.Sample] IsActive: {0}", isActive))
+                .Subscribe(isActive => Log.Info("[VAD.Sample] IsActive: {0}", isActive))
                 .AddTo(this);
 
             // Set microphone as audio source

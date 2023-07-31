@@ -26,8 +26,19 @@ namespace Mochineko.VoiceActivityDetection
         /// </summary>
         /// <param name="maxSampleLength">Max sample length to record.</param>
         /// <param name="frequency">Frequency (= sampling rate) of voice data.</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public AudioClipBuffer(int maxSampleLength, int frequency)
         {
+            if (maxSampleLength <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxSampleLength), maxSampleLength, "maxSampleLength must be positive value.");
+            }
+
+            if (frequency <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(frequency), frequency, "frequency must be positive value.");
+            }
+
             this.audioClip = AudioClip.Create(
                 name: "VAD_AudioClipBuffer",
                 lengthSamples: maxSampleLength,

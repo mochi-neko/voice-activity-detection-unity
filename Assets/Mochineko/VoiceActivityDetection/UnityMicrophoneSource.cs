@@ -29,11 +29,17 @@ namespace Mochineko.VoiceActivityDetection
         /// Creates a new instance of <see cref="UnityMicrophoneSource"/>.
         /// </summary>
         /// <param name="proxy">Proxy of UnityEngine.Microphone.</param>
-        /// <param name="readBufferSize">Fixed buffer size to read voice data at one time.</param>
+        /// <param name="readBufferSize">Fixed buffer size to read voice data at once.</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public UnityMicrophoneSource(
             UnityMicrophoneProxy proxy,
             int readBufferSize = 4096)
         {
+            if (readBufferSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(readBufferSize), readBufferSize, "Read buffer size must be greater than 0.");
+            }
+
             this.proxy = proxy;
             this.frequency = this.proxy.GetMaxFrequency();
             this.audioClip = this.proxy.AudioClip;

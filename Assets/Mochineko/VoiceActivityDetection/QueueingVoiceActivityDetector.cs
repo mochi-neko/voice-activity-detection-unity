@@ -46,6 +46,7 @@ namespace Mochineko.VoiceActivityDetection
         /// <param name="activationIntervalSeconds">Interval time(sec) to change from inactive state to active state.</param>
         /// <param name="inactivationIntervalSeconds">Interval time(sec) to change from active state to inactive state.</param>
         /// <param name="maxActiveDurationSeconds">Max time(sec) of active state.</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public QueueingVoiceActivityDetector(
             IVoiceSource source,
             IVoiceBuffer buffer,
@@ -58,6 +59,46 @@ namespace Mochineko.VoiceActivityDetection
             float inactivationIntervalSeconds,
             float maxActiveDurationSeconds)
         {
+            if (maxQueueingTimeSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxQueueingTimeSeconds), maxQueueingTimeSeconds, "maxQueueingTimeSeconds must be positive value.");
+            }
+
+            if (minQueueingTimeSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(minQueueingTimeSeconds), minQueueingTimeSeconds, "minQueueingTimeSeconds must be positive value.");
+            }
+
+            if (activeVolumeThreshold <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(activeVolumeThreshold), activeVolumeThreshold, "activeVolumeThreshold must be positive value.");
+            }
+
+            if (activationRateThreshold <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(activationRateThreshold), activationRateThreshold, "activationRateThreshold must be positive value.");
+            }
+
+            if (inactivationRateThreshold <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(inactivationRateThreshold), inactivationRateThreshold, "inactivationRateThreshold must be positive value.");
+            }
+
+            if (activationIntervalSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(activationIntervalSeconds), activationIntervalSeconds, "activationIntervalSeconds must be positive value.");
+            }
+
+            if (inactivationIntervalSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(inactivationIntervalSeconds), inactivationIntervalSeconds, "inactivationIntervalSeconds must be positive value.");
+            }
+
+            if (maxActiveDurationSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxActiveDurationSeconds), maxActiveDurationSeconds, "maxActiveDurationSeconds must be positive value.");
+            }
+
             this.source = source;
             this.buffer = buffer;
             this.activityQueue = new VoiceSegmentActivityQueue(maxQueueingTimeSeconds);

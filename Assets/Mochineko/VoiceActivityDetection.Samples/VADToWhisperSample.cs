@@ -62,7 +62,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 .OnVoiceInactive
                 .Subscribe(clip =>
                 {
-                    Log.Debug("[VAD.Sample] OnInactive and receive AudioClip and play.");
+                    Log.Info("[VAD.Sample] OnInactive and receive AudioClip and play.");
                     audioSource.clip = clip;
                     audioSource.Play();
                 })
@@ -98,7 +98,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
             if (streamQueue.TryDequeue(out var stream))
             {
-                Log.Debug("[VAD.Samples] Dequeue wave stream.");
+                Log.Info("[VAD.Samples] Dequeue wave stream.");
 
                 TranscribeAsync(stream, this.GetCancellationTokenOnDestroy())
                     .Forget();
@@ -107,7 +107,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
         void IWaveStreamReceiver.OnReceive(Stream stream)
         {
-            Log.Debug("[VAD.Samples] Enqueue wave stream.");
+            Log.Info("[VAD.Samples] Enqueue wave stream.");
 
             streamQueue.Enqueue(stream);
         }
@@ -121,7 +121,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 throw new NullReferenceException(nameof(apiKey));
             }
 
-            Log.Debug("[VAD.Samples] Begin to transcribe for audio stream: {0} bytes.", stream.Length);
+            Log.Info("[VAD.Samples] Begin to transcribe for audio stream: {0} bytes.", stream.Length);
 
             // Dispose stream when out of scope.
             await using var _ = stream;

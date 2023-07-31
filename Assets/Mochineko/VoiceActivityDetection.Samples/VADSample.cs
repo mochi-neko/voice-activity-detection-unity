@@ -41,7 +41,7 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
             vad
                 .VoiceIsActive
-                .Subscribe(isActive => Log.Debug("[VAD.Sample] IsActive: {0}", isActive))
+                .Subscribe(isActive => Log.Info("[VAD.Sample] IsActive: {0}", isActive))
                 .AddTo(this);
         }
 

@@ -25,14 +25,19 @@ namespace Mochineko.VoiceActivityDetection
         /// </summary>
         /// <param name="buffer">Buffer array of voice segment.</param>
         /// <param name="length">Effective length of voice segment data in buffer.</param>
-        /// <exception cref="ArgumentOutOfRangeException">length must be short than buffer size.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public VoiceSegment(float[] buffer, int length)
         {
+            if (length < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(length), length, "length must be positive value.");
+            }
+
             if (length > buffer.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(length));
+                throw new ArgumentOutOfRangeException(nameof(length), length, "length must be short than buffer size.");
             }
-            
+
             this.buffer = buffer;
             this.length = length;
         }

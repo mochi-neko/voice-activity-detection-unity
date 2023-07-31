@@ -12,7 +12,7 @@ namespace Mochineko.VoiceActivityDetection
         /// Whether the segment is active.
         /// </summary>
         public readonly bool isActive;
-        
+
         /// <summary>
         /// Time of the segment in seconds.
         /// </summary>
@@ -34,19 +34,19 @@ namespace Mochineko.VoiceActivityDetection
         {
             if (length <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(length));
+                throw new ArgumentOutOfRangeException(nameof(length), length, "length must be positive value.");
             }
-            
+
             if (samplingRate <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(samplingRate));
+                throw new ArgumentOutOfRangeException(nameof(samplingRate), samplingRate, "samplingRate must be positive value.");
             }
 
             if (channels <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(channels));
+                throw new ArgumentOutOfRangeException(nameof(channels), channels, "channels must be positive value.");
             }
-            
+
             this.isActive = isActive;
             this.timeSeconds = (float)length / samplingRate / channels;
         }

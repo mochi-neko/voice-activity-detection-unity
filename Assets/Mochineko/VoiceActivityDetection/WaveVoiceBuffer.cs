@@ -30,12 +30,28 @@ namespace Mochineko.VoiceActivityDetection
         /// <param name="samplingRate">Sampling rate of voice data.</param>
         /// <param name="bitsPerSample">Bits count per each sample to write wave data, 16, 24 or 32.</param>
         /// <param name="channels">Channels count of voice data</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public WaveVoiceBuffer(
             IWaveStreamReceiver receiver,
             int samplingRate = 44100,
             int bitsPerSample = 16,
             int channels = 1)
         {
+            if (samplingRate <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(samplingRate), samplingRate, "samplingRate must be positive value.");
+            }
+
+            if (bitsPerSample != 16 && bitsPerSample != 24 && bitsPerSample != 32)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bitsPerSample), bitsPerSample, "bitsPerSample must be 16, 24 or 32.");
+            }
+
+            if (channels <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(channels), channels, "channels must be positive value.");
+            }
+
             this.receiver = receiver;
             this.format = new WaveFormat(
                 rate: samplingRate,

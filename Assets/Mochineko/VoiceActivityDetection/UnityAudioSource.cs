@@ -1,7 +1,6 @@
 ﻿#nullable enable
 using System;
 using UniRx;
-using Unity.Logging;
 
 namespace Mochineko.VoiceActivityDetection
 {
@@ -20,10 +19,21 @@ namespace Mochineko.VoiceActivityDetection
         private readonly Subject<VoiceSegment> onSegmentRead = new();
         IObservable<VoiceSegment> IVoiceSource.OnSegmentRead => onSegmentRead;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="UnityAudioSource"/>.
+        /// </summary>
+        /// <param name="readBufferSize">Fixed buffer size to read voice data at once.</param>
+        /// <param name="mute">Mute output audio or not.</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public UnityAudioSource(
             int readBufferSize = 4096,
             bool mute = false)
         {
+            if (readBufferSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(readBufferSize), readBufferSize, "Read buffer size must be greater than 0.");
+            }
+
             this.readBuffer = new float[readBufferSize];
             this.mute = mute;
             this.samplingRate = UnityEngine.AudioSettings.outputSampleRate;
