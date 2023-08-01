@@ -148,7 +148,10 @@ namespace Mochineko.VoiceActivityDetection
 
         private async void OnSegmentReadAsync(VoiceSegment segment)
         {
-            var volume = segment.Volume();
+            // NOTE: Dispose segment when out of scope.
+            using var _ = segment;
+
+            var volume = segment.volume;
             Log.Verbose("[VAD] Volume: {0}.", volume.ToString("F4"));
 
             var isActiveSegment = volume >= activeVolumeThreshold;
@@ -167,6 +170,8 @@ namespace Mochineko.VoiceActivityDetection
                 return;
             }
 
+            var cancellationToken = cancellationTokenSource.Token;
+
             var activeRate = activityQueue.ActiveTimeRate();
 
             // Change to active
@@ -174,17 +179,20 @@ namespace Mochineko.VoiceActivityDetection
                 && activeRate >= activationRateThreshold
                 && intervalStopwatch.ElapsedMilliseconds >= activationIntervalSeconds * 1000)
             {
-                Log.Info("[VAD] Activated.");
-                await this.buffer.OnVoiceActiveAsync(this.cancellationTokenSource.Token);
+                // NOTE: Change state before await.
+                this.voiceIsActive.Value = true;
+
+                Log.Info("[VAD] Voice activated.");
+                await this.buffer.OnVoiceActiveAsync(cancellationToken);
 
                 // Write buffers of segments that are buffered while inactive state just before activation.
                 while (activationQueue.TryDequeue(out var queued) &&
-                       !cancellationTokenSource.IsCancellationRequested)
+                       !cancellationToken.IsCancellationRequested)
                 {
-                    await this.buffer.BufferAsync(queued, cancellationTokenSource.Token);
+                    await this.buffer.BufferAsync(queued, cancellationToken);
+                    queued.Dispose();
                 }
 
-                this.voiceIsActive.Value = true;
                 intervalStopwatch.Restart();
                 totalDurationStopwatch.Restart();
                 return;
@@ -196,16 +204,18 @@ namespace Mochineko.VoiceActivityDetection
                     || (activeRate <= inactivationRateThreshold
                         && intervalStopwatch.ElapsedMilliseconds >= inactivationIntervalSeconds * 1000)))
             {
-                Log.Info("[VAD] Inactivated.");
-                await this.buffer.OnVoiceInactiveAsync(this.cancellationTokenSource.Token);
+                // NOTE: Change state before await.
                 this.voiceIsActive.Value = false;
+
+                Log.Info("[VAD] Voice inactivated.");
+                await this.buffer.OnVoiceInactiveAsync(cancellationToken);
                 intervalStopwatch.Restart();
                 return;
             }
 
             if (voiceIsActive.Value)
             {
-                await this.buffer.BufferAsync(segment, this.cancellationTokenSource.Token);
+                await this.buffer.BufferAsync(segment, cancellationToken);
             }
             else
             {

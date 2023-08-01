@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Buffers;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection
@@ -7,51 +8,68 @@ namespace Mochineko.VoiceActivityDetection
     /// <summary>
     /// Voice segment data.
     /// </summary>
-    public readonly struct VoiceSegment
+    public readonly struct VoiceSegment : IDisposable
     {
         /// <summary>
-        /// Buffer array of voice segment.
-        /// Notice that this array is shared and reused.
+        /// Pooled buffer array of voice segment.
         /// </summary>
         public readonly float[] buffer;
 
         /// <summary>
-        /// Effective length of voice segment data in buffer.
+        /// Effective length of buffer array.
         /// </summary>
         public readonly int length;
 
         /// <summary>
+        /// Volume (root mean square) of this voice segment.
+        /// </summary>
+        public readonly float volume;
+
+        /// <summary>
         /// Creates a new instance of <see cref="VoiceSegment"/>.
         /// </summary>
-        /// <param name="buffer">Buffer array of voice segment.</param>
-        /// <param name="length">Effective length of voice segment data in buffer.</param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public VoiceSegment(float[] buffer, int length)
+        /// <param name="span">Span of voice segment data.</param>
+        public VoiceSegment(ReadOnlySpan<float> span)
         {
-            if (length < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(length), length, "length must be positive value.");
-            }
+            this.length = span.Length;
 
-            if (length > buffer.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(length), length, "length must be short than buffer size.");
-            }
+            this.buffer = ArrayPool<float>.Shared.Rent(this.length);
+            span.CopyTo(this.buffer);
 
-            this.buffer = buffer;
-            this.length = length;
+            this.volume = CalculateVolume(this.buffer, this.length);
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="VoiceSegment"/>.
+        /// </summary>
+        /// <param name="firstSpan">First span of voice segment data.</param>
+        /// <param name="secondSpan">Second span of voice segment data.</param>
+        public VoiceSegment(ReadOnlySpan<float> firstSpan, ReadOnlySpan<float> secondSpan)
+        {
+            this.length = firstSpan.Length + secondSpan.Length;
+
+            this.buffer = ArrayPool<float>.Shared.Rent(this.length);
+            firstSpan.CopyTo(this.buffer.AsSpan(0..firstSpan.Length));
+            secondSpan.CopyTo(this.buffer.AsSpan(firstSpan.Length..this.length));
+
+            this.volume = CalculateVolume(this.buffer, this.length);
+        }
+
+        public void Dispose()
+        {
+            ArrayPool<float>.Shared.Return(buffer, clearArray: false);
         }
 
         /// <summary>
         /// Calculates the volume (root mean square) of this voice segment.
         /// </summary>
         /// <returns></returns>
-        public float Volume()
+        private static float CalculateVolume(float[] data, int length)
         {
             var sum = 0f;
             for (var i = 0; i < length; i++)
             {
-                var sample = buffer[i];
+                var sample = data[i];
                 sum += sample * sample;
             }
 
@@ -64,9 +82,7 @@ namespace Mochineko.VoiceActivityDetection
         /// <returns></returns>
         public VoiceSegment Copy()
         {
-            var copy = new float[length];
-            Array.Copy(buffer, copy, length);
-            return new VoiceSegment(copy, length);
+            return new VoiceSegment(this.buffer.AsSpan(start: 0, length));
         }
     }
 }

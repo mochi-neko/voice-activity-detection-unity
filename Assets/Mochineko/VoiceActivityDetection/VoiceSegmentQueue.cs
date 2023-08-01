@@ -44,6 +44,7 @@ namespace Mochineko.VoiceActivityDetection
             {
                 queue.TryDequeue(out var dequeued);
                 currentLength -= dequeued.length;
+                dequeued.Dispose();
             }
         }
 
@@ -60,6 +61,11 @@ namespace Mochineko.VoiceActivityDetection
 
         public void Clear()
         {
+            foreach (var segment in queue)
+            {
+                segment.Dispose();
+            }
+
             queue.Clear();
             currentLength = 0;
         }

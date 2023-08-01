@@ -13,7 +13,7 @@ namespace Mochineko.VoiceActivityDetection
         private readonly UnityMicrophoneProxy proxy;
         private readonly AudioClip audioClip;
         private readonly float[] loopBuffer;
-        private readonly float[] readBuffer;
+        private readonly int readBufferSize;
         private readonly int frequency;
         private int currentPosition;
         private int lastPosition;
@@ -44,7 +44,7 @@ namespace Mochineko.VoiceActivityDetection
             this.frequency = this.proxy.GetMaxFrequency();
             this.audioClip = this.proxy.AudioClip;
             this.loopBuffer = new float[proxy.LoopLengthSeconds * frequency];
-            this.readBuffer = new float[readBufferSize];
+            this.readBufferSize = readBufferSize;
         }
 
         void IDisposable.Dispose()
@@ -101,13 +101,10 @@ namespace Mochineko.VoiceActivityDetection
                 var offset = 0;
                 while (offset < length)
                 {
-                    Array.Clear(this.readBuffer, index: 0, this.readBuffer.Length);
-
-                    var readLength = Math.Min(this.readBuffer.Length, length - offset);
+                    var readLength = Math.Min(readBufferSize, length - offset);
                     var slice = span.Slice(offset, readLength);
-                    slice.CopyTo(this.readBuffer);
 
-                    onSegmentRead.OnNext(new VoiceSegment(this.readBuffer, readLength));
+                    onSegmentRead.OnNext(new VoiceSegment(slice));
 
                     offset += readLength;
                 }
@@ -120,33 +117,28 @@ namespace Mochineko.VoiceActivityDetection
                 var offset = 0;
                 while (offset < length)
                 {
-                    Array.Clear(this.readBuffer, index: 0, this.readBuffer.Length);
-
-                    var readLength = Math.Min(this.readBuffer.Length, length - offset);
+                    var readLength = Math.Min(readBufferSize, length - offset);
                     // Read all from toEnd
                     if (offset < toEnd.Length - readLength)
                     {
                         var slice = toEnd.Slice(offset, readLength);
-                        slice.CopyTo(this.readBuffer);
+                        onSegmentRead.OnNext(new VoiceSegment(slice));
                     }
                     // Read from toEnd and fromStart
                     else if (offset < toEnd.Length)
                     {
                         var readLenghtFromToEnd = toEnd.Length - offset;
                         var sliceInToEnd = toEnd.Slice(offset, readLenghtFromToEnd);
-                        sliceInToEnd.CopyTo(this.readBuffer.AsSpan(0..readLenghtFromToEnd));
-
                         var sliceInFromStart = fromStart.Slice(start: 0, readLength - readLenghtFromToEnd);
-                        sliceInFromStart.CopyTo(this.readBuffer.AsSpan(readLenghtFromToEnd..readLength));
+
+                        onSegmentRead.OnNext(new VoiceSegment(sliceInToEnd, sliceInFromStart));
                     }
                     // Read all from fromStart
                     else
                     {
                         var slice = fromStart.Slice(offset - toEnd.Length, readLength);
-                        slice.CopyTo(this.readBuffer);
+                        onSegmentRead.OnNext(new VoiceSegment(slice));
                     }
-
-                    onSegmentRead.OnNext(new VoiceSegment(this.readBuffer, readLength));
 
                     offset += readLength;
                 }

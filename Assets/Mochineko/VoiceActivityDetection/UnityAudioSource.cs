@@ -9,11 +9,11 @@ namespace Mochineko.VoiceActivityDetection
     /// </summary>
     public sealed class UnityAudioSource : IVoiceSource
     {
-        private readonly float[] readBuffer;
+        private readonly int readBufferSize;
         private readonly bool mute;
         private readonly int samplingRate;
 
-        private int channels;
+        private int channels = 1;
         private bool isActive = true;
 
         private readonly Subject<VoiceSegment> onSegmentRead = new();
@@ -34,7 +34,7 @@ namespace Mochineko.VoiceActivityDetection
                 throw new ArgumentOutOfRangeException(nameof(readBufferSize), readBufferSize, "Read buffer size must be greater than 0.");
             }
 
-            this.readBuffer = new float[readBufferSize];
+            this.readBufferSize = readBufferSize;
             this.mute = mute;
             this.samplingRate = UnityEngine.AudioSettings.outputSampleRate;
         }
@@ -48,7 +48,7 @@ namespace Mochineko.VoiceActivityDetection
             => this.samplingRate;
 
         int IVoiceSource.Channels
-            => 1;
+            => this.channels;
 
         void IVoiceSource.Update()
         {
@@ -72,18 +72,15 @@ namespace Mochineko.VoiceActivityDetection
                 return;
             }
 
+            this.channels = channels;
+
             // Read data with buffer
             var position = 0;
             while (position < data.Length)
             {
-                Array.Clear(readBuffer, index: 0, readBuffer.Length);
-
-                var readLength = Math.Min(readBuffer.Length, data.Length - position);
-
-                Array.Copy(data, position, readBuffer, destinationIndex: 0, readLength);
-
-                onSegmentRead.OnNext(new VoiceSegment(readBuffer, readLength));
-
+                var readLength = Math.Min(readBufferSize, data.Length - position);
+                var span = data.AsSpan(position, readLength);
+                onSegmentRead.OnNext(new VoiceSegment(span));
                 position += readLength;
             }
 
