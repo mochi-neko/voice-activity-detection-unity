@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-09-05
+
+### Added
+- Add another VAD logic: `CumulativeVoiceActivityDetector`.
+- Add a sample of `CumulativeVoiceActivityDetector`.
+
+### Changed
+- Make `VoiceSegment` class to prevent struct copy and memory leak.
+
 ## [0.3.2] - 2023-09-05
 
 ### Fixed

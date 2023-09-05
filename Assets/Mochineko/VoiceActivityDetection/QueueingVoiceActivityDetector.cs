@@ -8,8 +8,7 @@ using Unity.Logging;
 namespace Mochineko.VoiceActivityDetection
 {
     /// <summary>
-    /// A simple implementation of <see cref="IVoiceActivityDetector"/>.
-    /// Detects voice activity by using voice segment queue, volume threshold, activation/deactivation rate and interval.
+    /// A voice activity detector that queues voice segments and detects activity by rate.
     /// </summary>
     public sealed class QueueingVoiceActivityDetector : IVoiceActivityDetector
     {

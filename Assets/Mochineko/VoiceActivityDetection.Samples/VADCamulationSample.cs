@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection.Samples
 {
+    /// <summary>
+    /// A sample of voice activity detection by CumulativeVoiceActivityDetector.
+    /// </summary>
     internal sealed class VADCamulationSample : MonoBehaviour
     {
         [SerializeField]
