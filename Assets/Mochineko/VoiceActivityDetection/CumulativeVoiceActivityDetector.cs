@@ -8,6 +8,9 @@ using Unity.Logging;
 
 namespace Mochineko.VoiceActivityDetection
 {
+    /// <summary>
+    /// A voice activity detector that detects voice activity by cumulative and upper limited charge time.
+    /// </summary>
     public sealed class CumulativeVoiceActivityDetector : IVoiceActivityDetector
     {
         private readonly IVoiceSource source;
@@ -27,6 +30,17 @@ namespace Mochineko.VoiceActivityDetection
         private readonly ReactiveProperty<bool> voiceIsActive = new();
         IReadOnlyReactiveProperty<bool> IVoiceActivityDetector.VoiceIsActive => voiceIsActive;
 
+        /// <summary>
+        /// Create a new instance of <see cref="CumulativeVoiceActivityDetector"/>.
+        /// </summary>
+        /// <param name="source">Voice source.</param>
+        /// <param name="buffer">Voice buffer.</param>
+        /// <param name="activeVolumeThreshold">Threshold of active volume (root mean square) of voice data.</param>
+        /// <param name="activeChargeTimeRate">Rate to charge time for active voice.</param>
+        /// <param name="maxChargeTimeSeconds">Maximum and initial charge time in seconds.</param>
+        /// <param name="minCumulatedTimeSeconds">Minimum of cumulated time in seconds to buffer.</param>
+        /// <param name="maxCumulatedTimeSeconds">Maximum of cumulated time in seconds to buffer.</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public CumulativeVoiceActivityDetector(
             IVoiceSource source,
             IVoiceBuffer buffer,
@@ -64,6 +78,12 @@ namespace Mochineko.VoiceActivityDetection
             {
                 throw new ArgumentOutOfRangeException(nameof(maxCumulatedTimeSeconds),
                     maxCumulatedTimeSeconds, "Must be greater than 0.");
+            }
+
+            if (minCumulatedTimeSeconds > maxCumulatedTimeSeconds)
+            {
+                throw new ArgumentOutOfRangeException(nameof(minCumulatedTimeSeconds),
+                    minCumulatedTimeSeconds, "Must be less than maxCumulatedTimeSeconds.");
             }
 
             this.source = source;
@@ -122,8 +142,8 @@ namespace Mochineko.VoiceActivityDetection
 
             if (voiceIsActive.Value)
             {
-                var changeState = await activeState.UpdateAsync(segment, cancellationToken);
-                if (changeState)
+                var changeToInactive = await activeState.UpdateAsync(segment, cancellationToken);
+                if (changeToInactive)
                 {
                     // Change to InactivateState
                     activeState.Exit();
@@ -134,8 +154,8 @@ namespace Mochineko.VoiceActivityDetection
             }
             else
             {
-                var changeState = await inactivateState.UpdateAsync(segment, cancellationToken);
-                if (changeState)
+                var changeToActive = await inactivateState.UpdateAsync(segment, cancellationToken);
+                if (changeToActive)
                 {
                     // Change to ActiveState
                     inactivateState.Exit();
@@ -166,7 +186,6 @@ namespace Mochineko.VoiceActivityDetection
             public void Enter()
             {
                 Log.Debug("[VAD] Enter ActiveState.");
-                parent.voiceIsActive.Value = true;
                 chargeTimeSeconds = parent.maxChargeTimeSeconds;
                 cumulatedTimeSeconds = 0f;
                 activeTimeSeconds = 0f;
@@ -180,6 +199,13 @@ namespace Mochineko.VoiceActivityDetection
                 }
             }
 
+            /// <summary>
+            /// Add segment and update state.
+            /// Returns true if state is changed to inactive state.
+            /// </summary>
+            /// <param name="segment"></param>
+            /// <param name="cancellationToken"></param>
+            /// <returns></returns>
             public async UniTask<bool> UpdateAsync(
                 VoiceSegment segment,
                 CancellationToken cancellationToken)
@@ -205,12 +231,15 @@ namespace Mochineko.VoiceActivityDetection
                     chargeTimeSeconds = parent.maxChargeTimeSeconds;
                 }
 
-                Log.Debug("[VAD] Charge time: {0}, Cumulated time: {1}", chargeTimeSeconds, cumulatedTimeSeconds);
+                Log.Verbose("[VAD] Charge time: {0}, Cumulated time: {1}", chargeTimeSeconds, cumulatedTimeSeconds);
 
                 // Finish active state
                 if (cumulatedTimeSeconds >= parent.maxCumulatedTimeSeconds
                     || chargeTimeSeconds <= 0f)
                 {
+                    // NOTE: Quickly change to inactive state before buffering.
+                    parent.voiceIsActive.Value = false;
+
                     var isEffectiveSegments = activeTimeSeconds >= parent.minCumulatedTimeSeconds;
                     if (isEffectiveSegments)
                     {
@@ -260,6 +289,13 @@ namespace Mochineko.VoiceActivityDetection
             {
             }
 
+            /// <summary>
+            /// Add segment and update state.
+            /// Returns true if state is changed to active state.
+            /// </summary>
+            /// <param name="segment"></param>
+            /// <param name="cancellationToken"></param>
+            /// <returns></returns>
             public UniTask<bool> UpdateAsync(
                 VoiceSegment segment,
                 CancellationToken cancellationToken)
@@ -268,6 +304,7 @@ namespace Mochineko.VoiceActivityDetection
                 if (isActive)
                 {
                     // Change to ActiveState
+                    parent.voiceIsActive.Value = true;
                     // NOTE: Not dispose segment to enqueue in ActiveState.
                     return UniTask.FromResult(true);
                 }
