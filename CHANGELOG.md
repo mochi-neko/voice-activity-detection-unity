@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2023-09-05
+
+### Fixed
+- Fix multi-thread conflict in `UnityMicrophoneSource.Update`.
+
 ## [0.3.1] - 2023-08-01
 
-## Changed
+### Changed
 - Improve timing to change flag of voice activity in `QueueingVoiceActivityDetector`.
 - Introduce array pool to avoid conflicting resources with multi-threading.
 

@@ -19,6 +19,8 @@ namespace Mochineko.VoiceActivityDetection
         private int lastPosition;
         private bool isActive = true;
 
+        private readonly object lockObject = new();
+
         private readonly Subject<VoiceSegment> onSegmentRead = new();
         IObservable<VoiceSegment> IVoiceSource.OnSegmentRead => onSegmentRead;
 
@@ -37,7 +39,8 @@ namespace Mochineko.VoiceActivityDetection
         {
             if (readBufferSize <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(readBufferSize), readBufferSize, "Read buffer size must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(readBufferSize), readBufferSize,
+                    "Read buffer size must be greater than 0.");
             }
 
             this.proxy = proxy;
@@ -54,32 +57,35 @@ namespace Mochineko.VoiceActivityDetection
 
         void IVoiceSource.Update()
         {
-            currentPosition = this.proxy.GetSamplePosition();
-            if (currentPosition < 0)
+            lock (lockObject)
             {
-                lastPosition = 0;
-                return;
+                currentPosition = this.proxy.GetSamplePosition();
+                if (currentPosition < 0)
+                {
+                    lastPosition = 0;
+                    return;
+                }
+
+                if (!isActive)
+                {
+                    return;
+                }
+
+                // No update of microphone audio
+                if (currentPosition == lastPosition)
+                {
+                    return;
+                }
+
+                // Write current all data to loop buffer
+                this.audioClip.GetData(this.loopBuffer, offsetSamples: 0);
+
+                // Read samples from last position to current position
+                ReadCurrentSamples();
+
+                // Update last position
+                lastPosition = currentPosition;
             }
-
-            if (!isActive)
-            {
-                return;
-            }
-
-            // No update of microphone audio
-            if (currentPosition == lastPosition)
-            {
-                return;
-            }
-
-            // Write current all data to loop buffer
-            this.audioClip.GetData(this.loopBuffer, offsetSamples: 0);
-
-            // Read samples from last position to current position
-            ReadCurrentSamples();
-
-            // Update last position
-            lastPosition = currentPosition;
         }
 
         void IVoiceSource.SetSourceActive(bool isActive)
