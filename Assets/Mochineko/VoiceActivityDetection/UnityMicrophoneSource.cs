@@ -15,6 +15,7 @@ namespace Mochineko.VoiceActivityDetection
         private readonly float[] loopBuffer;
         private readonly int readBufferSize;
         private readonly int frequency;
+        private readonly int channels;
         private int currentPosition;
         private int lastPosition;
         private bool isActive = true;
@@ -25,7 +26,7 @@ namespace Mochineko.VoiceActivityDetection
         IObservable<VoiceSegment> IVoiceSource.OnSegmentRead => onSegmentRead;
 
         int IVoiceSource.SamplingRate => frequency;
-        int IVoiceSource.Channels => 1;
+        int IVoiceSource.Channels => channels;
 
         /// <summary>
         /// Creates a new instance of <see cref="UnityMicrophoneSource"/>.
@@ -46,6 +47,7 @@ namespace Mochineko.VoiceActivityDetection
             this.proxy = proxy;
             this.frequency = this.proxy.GetMaxFrequency();
             this.audioClip = this.proxy.AudioClip;
+            this.channels = this.audioClip.channels;
             this.loopBuffer = new float[proxy.LoopLengthSeconds * frequency];
             this.readBufferSize = readBufferSize;
         }
@@ -110,7 +112,7 @@ namespace Mochineko.VoiceActivityDetection
                     var readLength = Math.Min(readBufferSize, length - offset);
                     var slice = span.Slice(offset, readLength);
 
-                    onSegmentRead.OnNext(new VoiceSegment(slice));
+                    onSegmentRead.OnNext(new VoiceSegment(slice, frequency, channels));
 
                     offset += readLength;
                 }
@@ -128,7 +130,7 @@ namespace Mochineko.VoiceActivityDetection
                     if (offset < toEnd.Length - readLength)
                     {
                         var slice = toEnd.Slice(offset, readLength);
-                        onSegmentRead.OnNext(new VoiceSegment(slice));
+                        onSegmentRead.OnNext(new VoiceSegment(slice, frequency, channels));
                     }
                     // Read from toEnd and fromStart
                     else if (offset < toEnd.Length)
@@ -137,13 +139,13 @@ namespace Mochineko.VoiceActivityDetection
                         var sliceInToEnd = toEnd.Slice(offset, readLenghtFromToEnd);
                         var sliceInFromStart = fromStart.Slice(start: 0, readLength - readLenghtFromToEnd);
 
-                        onSegmentRead.OnNext(new VoiceSegment(sliceInToEnd, sliceInFromStart));
+                        onSegmentRead.OnNext(new VoiceSegment(sliceInToEnd, sliceInFromStart, frequency, channels));
                     }
                     // Read all from fromStart
                     else
                     {
                         var slice = fromStart.Slice(offset - toEnd.Length, readLength);
-                        onSegmentRead.OnNext(new VoiceSegment(slice));
+                        onSegmentRead.OnNext(new VoiceSegment(slice, frequency, channels));
                     }
 
                     offset += readLength;

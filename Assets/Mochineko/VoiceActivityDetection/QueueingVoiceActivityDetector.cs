@@ -151,7 +151,7 @@ namespace Mochineko.VoiceActivityDetection
             // NOTE: Dispose segment when out of scope.
             using var _ = segment;
 
-            var volume = segment.volume;
+            var volume = segment.Volume;
             Log.Verbose("[VAD] Volume: {0}.", volume.ToString("F4"));
 
             var isActiveSegment = volume >= activeVolumeThreshold;
@@ -159,7 +159,7 @@ namespace Mochineko.VoiceActivityDetection
 
             activityQueue.Enqueue(new VoiceSegmentActivity(
                 isActiveSegment,
-                length: segment.length,
+                length: segment.Length,
                 this.source.SamplingRate,
                 this.source.Channels)
             );

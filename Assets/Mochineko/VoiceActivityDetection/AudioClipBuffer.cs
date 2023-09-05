@@ -52,11 +52,11 @@ namespace Mochineko.VoiceActivityDetection
         UniTask IVoiceBuffer.BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
         {
             // NOTE: Copy to new buffer, namely allocated new array.
-            var writeBuffer = segment.buffer.AsSpan(0..segment.length).ToArray();
+            var writeBuffer = segment.Buffer.AsSpan(0..segment.Length).ToArray();
 
             this.audioClip.SetData(writeBuffer, offsetSamples: position);
 
-            position += segment.length;
+            position += segment.Length;
 
             return UniTask.CompletedTask;
         }

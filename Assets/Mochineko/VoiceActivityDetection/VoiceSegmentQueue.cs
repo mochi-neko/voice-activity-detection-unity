@@ -38,12 +38,12 @@ namespace Mochineko.VoiceActivityDetection
         public void Enqueue(VoiceSegment segment)
         {
             queue.Enqueue(segment);
-            currentLength += segment.length;
+            currentLength += segment.Length;
 
             while (currentLength > maxQueueingLength)
             {
                 queue.TryDequeue(out var dequeued);
-                currentLength -= dequeued.length;
+                currentLength -= dequeued.Length;
                 dequeued.Dispose();
             }
         }
@@ -53,7 +53,7 @@ namespace Mochineko.VoiceActivityDetection
             var result = queue.TryDequeue(out segment);
             if (result)
             {
-                currentLength -= segment.length;
+                currentLength -= segment.Length;
             }
 
             return result;

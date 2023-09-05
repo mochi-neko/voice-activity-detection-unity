@@ -77,9 +77,9 @@ namespace Mochineko.VoiceActivityDetection
 
             lock (lockObject)
             {
-                sizeCounter += segment.length;
-                Log.Verbose("[VAD] Write {0} / {1} samples to wave stream.", segment.length, sizeCounter);
-                writer.WriteSamples(segment.buffer, offset: 0, segment.length);
+                sizeCounter += segment.Length;
+                Log.Verbose("[VAD] Write {0} / {1} samples to wave stream.", segment.Length, sizeCounter);
+                writer.WriteSamples(segment.Buffer, offset: 0, segment.Length);
             }
 
             await UniTask.SwitchToMainThread(cancellationToken);

@@ -80,7 +80,7 @@ namespace Mochineko.VoiceActivityDetection
             {
                 var readLength = Math.Min(readBufferSize, data.Length - position);
                 var span = data.AsSpan(position, readLength);
-                onSegmentRead.OnNext(new VoiceSegment(span));
+                onSegmentRead.OnNext(new VoiceSegment(span, samplingRate, channels));
                 position += readLength;
             }
 

@@ -8,35 +8,65 @@ namespace Mochineko.VoiceActivityDetection
     /// <summary>
     /// Voice segment data.
     /// </summary>
-    public readonly struct VoiceSegment : IDisposable
+    public sealed class VoiceSegment : IDisposable
     {
         /// <summary>
         /// Pooled buffer array of voice segment.
         /// </summary>
-        public readonly float[] buffer;
+        public float[] Buffer { get; }
 
         /// <summary>
         /// Effective length of buffer array.
         /// </summary>
-        public readonly int length;
+        public int Length { get; }
 
         /// <summary>
         /// Volume (root mean square) of this voice segment.
         /// </summary>
-        public readonly float volume;
+        public float Volume { get; }
+
+        /// <summary>
+        /// Duration of this voice segment in seconds.
+        /// </summary>
+        public float DurationSeconds { get; }
+
+        /// <summary>
+        /// Copy constructor.
+        /// </summary>
+        /// <param name="span"></param>
+        /// <param name="volume"></param>
+        /// <param name="durationSeconds"></param>
+        private VoiceSegment(
+            ReadOnlySpan<float> span,
+            float volume,
+            float durationSeconds)
+        {
+            this.Length = span.Length;
+            this.Buffer = ArrayPool<float>.Shared.Rent(this.Length);
+            span.CopyTo(this.Buffer);
+
+            this.Volume = volume;
+            this.DurationSeconds = durationSeconds;
+        }
 
         /// <summary>
         /// Creates a new instance of <see cref="VoiceSegment"/>.
         /// </summary>
         /// <param name="span">Span of voice segment data.</param>
-        public VoiceSegment(ReadOnlySpan<float> span)
+        /// <param name="frequency">Frequency of voice data.</param>
+        /// <param name="channels">Channels count of voice data.</param>
+        public VoiceSegment(
+            ReadOnlySpan<float> span,
+            int frequency,
+            int channels)
         {
-            this.length = span.Length;
+            this.Length = span.Length;
 
-            this.buffer = ArrayPool<float>.Shared.Rent(this.length);
-            span.CopyTo(this.buffer);
+            this.Buffer = ArrayPool<float>.Shared.Rent(this.Length);
+            span.CopyTo(this.Buffer);
 
-            this.volume = CalculateVolume(this.buffer, this.length);
+            this.Volume = CalculateVolume(this.Buffer, this.Length);
+            this.DurationSeconds = (float)this.Length / frequency / channels;
         }
 
         /// <summary>
@@ -44,20 +74,27 @@ namespace Mochineko.VoiceActivityDetection
         /// </summary>
         /// <param name="firstSpan">First span of voice segment data.</param>
         /// <param name="secondSpan">Second span of voice segment data.</param>
-        public VoiceSegment(ReadOnlySpan<float> firstSpan, ReadOnlySpan<float> secondSpan)
+        /// <param name="frequency">Frequency of voice data.</param>
+        /// <param name="channels">Channels count of voice data.</param>
+        public VoiceSegment(
+            ReadOnlySpan<float> firstSpan,
+            ReadOnlySpan<float> secondSpan,
+            int frequency,
+            int channels)
         {
-            this.length = firstSpan.Length + secondSpan.Length;
+            this.Length = firstSpan.Length + secondSpan.Length;
 
-            this.buffer = ArrayPool<float>.Shared.Rent(this.length);
-            firstSpan.CopyTo(this.buffer.AsSpan(0..firstSpan.Length));
-            secondSpan.CopyTo(this.buffer.AsSpan(firstSpan.Length..this.length));
+            this.Buffer = ArrayPool<float>.Shared.Rent(this.Length);
+            firstSpan.CopyTo(this.Buffer.AsSpan(0..firstSpan.Length));
+            secondSpan.CopyTo(this.Buffer.AsSpan(firstSpan.Length..this.Length));
 
-            this.volume = CalculateVolume(this.buffer, this.length);
+            this.Volume = CalculateVolume(this.Buffer, this.Length);
+            this.DurationSeconds = (float)this.Length / frequency / channels;
         }
 
         public void Dispose()
         {
-            ArrayPool<float>.Shared.Return(buffer, clearArray: false);
+            ArrayPool<float>.Shared.Return(Buffer, clearArray: false);
         }
 
         /// <summary>
@@ -82,7 +119,10 @@ namespace Mochineko.VoiceActivityDetection
         /// <returns></returns>
         public VoiceSegment Copy()
         {
-            return new VoiceSegment(this.buffer.AsSpan(start: 0, length));
+            return new VoiceSegment(
+                this.Buffer.AsSpan(start: 0, Length),
+                this.Volume,
+                this.DurationSeconds);
         }
     }
 }
