@@ -32,6 +32,8 @@ namespace Mochineko.VoiceActivityDetection.Samples
                 throw new NullReferenceException(nameof(audioSource));
             }
 
+            Application.targetFrameRate = 60;
+
             proxy = new UnityMicrophoneProxy();
 
             IVoiceSource source = new UnityMicrophoneSource(proxy);

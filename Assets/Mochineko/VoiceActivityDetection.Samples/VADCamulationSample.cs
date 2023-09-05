@@ -9,9 +9,6 @@ namespace Mochineko.VoiceActivityDetection.Samples
     internal sealed class VADCamulationSample : MonoBehaviour
     {
         [SerializeField]
-        private VADParameters? parameters = null;
-
-        [SerializeField]
         private AudioSource? audioSource = null;
 
         private UnityMicrophoneProxy? proxy;
@@ -19,30 +16,27 @@ namespace Mochineko.VoiceActivityDetection.Samples
 
         private void Start()
         {
-            if (parameters == null)
-            {
-                throw new NullReferenceException(nameof(parameters));
-            }
-
             if (audioSource == null)
             {
                 throw new NullReferenceException(nameof(audioSource));
             }
 
+            Application.targetFrameRate = 60;
+
             proxy = new UnityMicrophoneProxy();
 
             IVoiceSource source = new UnityMicrophoneSource(proxy);
             var buffer = new AudioClipBuffer(
-                maxSampleLength: (int)(parameters.MaxActiveDurationSeconds * source.SamplingRate),
+                maxSampleLength: (int)(15f * source.SamplingRate),
                 frequency: source.SamplingRate);
 
             vad = new CumulativeVoiceActivityDetector(
                 source,
                 buffer,
-                activeVolumeThreshold: 0.01f,
+                activeVolumeThreshold: 0.007f,
                 activeChargeTimeRate: 2f,
                 maxChargeTimeSeconds: 2f,
-                effectiveCumulatedTimeThresholdSeconds: 0.5f,
+                minCumulatedTimeSeconds: 0.3f,
                 maxCumulatedTimeSeconds: 10f
             );
 

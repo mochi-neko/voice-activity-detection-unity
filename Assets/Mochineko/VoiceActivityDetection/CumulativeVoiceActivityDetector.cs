@@ -16,7 +16,7 @@ namespace Mochineko.VoiceActivityDetection
         private readonly float activeVolumeThreshold;
         private readonly float activeChargeTimeRate;
         private readonly float maxChargeTimeSeconds;
-        private readonly float effectiveCumulatedTimeThresholdSeconds;
+        private readonly float minCumulatedTimeSeconds;
         private readonly float maxCumulatedTimeSeconds;
 
         private readonly ActiveState activeState;
@@ -33,7 +33,7 @@ namespace Mochineko.VoiceActivityDetection
             float activeVolumeThreshold,
             float activeChargeTimeRate,
             float maxChargeTimeSeconds,
-            float effectiveCumulatedTimeThresholdSeconds,
+            float minCumulatedTimeSeconds,
             float maxCumulatedTimeSeconds)
         {
             if (activeVolumeThreshold <= 0f)
@@ -54,10 +54,10 @@ namespace Mochineko.VoiceActivityDetection
                     "Must be greater than 0.");
             }
 
-            if (effectiveCumulatedTimeThresholdSeconds <= 0f)
+            if (minCumulatedTimeSeconds <= 0f)
             {
-                throw new ArgumentOutOfRangeException(nameof(effectiveCumulatedTimeThresholdSeconds),
-                    effectiveCumulatedTimeThresholdSeconds, "Must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(minCumulatedTimeSeconds),
+                    minCumulatedTimeSeconds, "Must be greater than 0.");
             }
 
             if (maxCumulatedTimeSeconds <= 0f)
@@ -72,7 +72,7 @@ namespace Mochineko.VoiceActivityDetection
             this.activeVolumeThreshold = activeVolumeThreshold;
             this.activeChargeTimeRate = activeChargeTimeRate;
             this.maxChargeTimeSeconds = maxChargeTimeSeconds;
-            this.effectiveCumulatedTimeThresholdSeconds = effectiveCumulatedTimeThresholdSeconds;
+            this.minCumulatedTimeSeconds = minCumulatedTimeSeconds;
             this.maxCumulatedTimeSeconds = maxCumulatedTimeSeconds;
 
             onSegmentReadDisposable = this.source
@@ -90,6 +90,8 @@ namespace Mochineko.VoiceActivityDetection
             onSegmentReadDisposable.Dispose();
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
+            activeState.Exit();
+            inactivateState.Exit();
             buffer.Dispose();
             source.Dispose();
         }
@@ -103,6 +105,9 @@ namespace Mochineko.VoiceActivityDetection
             {
                 activeState.Exit();
                 inactivateState.Enter();
+
+                buffer.OnVoiceInactiveAsync(cancellationTokenSource.Token)
+                    .Forget();
             }
         }
 
@@ -123,6 +128,8 @@ namespace Mochineko.VoiceActivityDetection
                     // Change to InactivateState
                     activeState.Exit();
                     inactivateState.Enter();
+
+                    await buffer.OnVoiceInactiveAsync(cancellationToken);
                 }
             }
             else
@@ -134,8 +141,10 @@ namespace Mochineko.VoiceActivityDetection
                     inactivateState.Exit();
                     activeState.Enter();
 
+                    await buffer.OnVoiceActiveAsync(cancellationToken);
+
                     // NOTE: Add initial segment to queue in active state.
-                    _ = await activeState.UpdateAsync(segment, cancellationToken);
+                    var __ = await activeState.UpdateAsync(segment, cancellationToken);
                 }
             }
         }
@@ -147,6 +156,7 @@ namespace Mochineko.VoiceActivityDetection
 
             private float chargeTimeSeconds;
             private float cumulatedTimeSeconds;
+            private float activeTimeSeconds;
 
             public ActiveState(CumulativeVoiceActivityDetector parent)
             {
@@ -159,15 +169,15 @@ namespace Mochineko.VoiceActivityDetection
                 parent.voiceIsActive.Value = true;
                 chargeTimeSeconds = parent.maxChargeTimeSeconds;
                 cumulatedTimeSeconds = 0f;
+                activeTimeSeconds = 0f;
             }
 
             public void Exit()
             {
-                foreach (var segment in queue)
+                while (queue.TryDequeue(out var segment))
                 {
-                    segment.Dispose();
+                   segment.Dispose();
                 }
-                queue.Clear();
             }
 
             public async UniTask<bool> UpdateAsync(
@@ -184,11 +194,12 @@ namespace Mochineko.VoiceActivityDetection
                 chargeTimeSeconds -= durationSeconds;
                 if (isActive)
                 {
+                    activeTimeSeconds += durationSeconds;
                     // Charge
                     chargeTimeSeconds += durationSeconds * parent.activeChargeTimeRate;
                 }
 
-                if (chargeTimeSeconds >= parent.maxChargeTimeSeconds)
+                if (chargeTimeSeconds > parent.maxChargeTimeSeconds)
                 {
                     // Limit
                     chargeTimeSeconds = parent.maxChargeTimeSeconds;
@@ -196,28 +207,27 @@ namespace Mochineko.VoiceActivityDetection
 
                 Log.Debug("[VAD] Charge time: {0}, Cumulated time: {1}", chargeTimeSeconds, cumulatedTimeSeconds);
 
-                // No more charges
+                // Finish active state
                 if (cumulatedTimeSeconds >= parent.maxCumulatedTimeSeconds
                     || chargeTimeSeconds <= 0f)
                 {
-                    var totalActiveTime = CalculateTotalActiveTime();
-                    var isEffectiveSegments = totalActiveTime >= parent.effectiveCumulatedTimeThresholdSeconds;
+                    var isEffectiveSegments = activeTimeSeconds >= parent.minCumulatedTimeSeconds;
                     if (isEffectiveSegments)
                     {
-                        Log.Debug("[VAD] Effective segments: {0}", totalActiveTime);
+                        Log.Debug("[VAD] Effective segments: {0}", activeTimeSeconds);
                         // Write all segments in queue to buffer.
                         while (
                             queue.TryDequeue(out var dequeued)
                             && !cancellationToken.IsCancellationRequested)
                         {
-                            await parent.buffer.BufferAsync(segment, cancellationToken);
+                            await parent.buffer.BufferAsync(dequeued, cancellationToken);
                             dequeued.Dispose();
                         }
                     }
                     else
                     {
                         // NOTE: Not effective segments are ignored.
-                        Log.Debug("[VAD] Ignored segments: {0}", totalActiveTime);
+                        Log.Debug("[VAD] Ignored segments: {0}", activeTimeSeconds);
                     }
 
                     // Change to InactivateState
@@ -228,20 +238,6 @@ namespace Mochineko.VoiceActivityDetection
                     // Stay ActiveState
                     return false;
                 }
-            }
-
-            private float CalculateTotalActiveTime()
-            {
-                var total = 0f;
-                foreach (var segment in queue)
-                {
-                    if (segment.Volume >= parent.activeVolumeThreshold)
-                    {
-                        total += segment.DurationSeconds;
-                    }
-                }
-
-                return total;
             }
         }
 
@@ -272,11 +268,13 @@ namespace Mochineko.VoiceActivityDetection
                 if (isActive)
                 {
                     // Change to ActiveState
+                    // NOTE: Not dispose segment to enqueue in ActiveState.
                     return UniTask.FromResult(true);
                 }
                 else
                 {
                     // Stay InactivateState
+                    segment.Dispose();
                     return UniTask.FromResult(false);
                 }
             }

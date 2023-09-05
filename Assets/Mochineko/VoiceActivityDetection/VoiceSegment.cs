@@ -30,6 +30,8 @@ namespace Mochineko.VoiceActivityDetection
         /// </summary>
         public float DurationSeconds { get; }
 
+        private bool disposed = false;
+
         /// <summary>
         /// Copy constructor.
         /// </summary>
@@ -43,7 +45,7 @@ namespace Mochineko.VoiceActivityDetection
         {
             this.Length = span.Length;
             this.Buffer = ArrayPool<float>.Shared.Rent(this.Length);
-            span.CopyTo(this.Buffer);
+            span.CopyTo(this.Buffer.AsSpan(0..this.Length));
 
             this.Volume = volume;
             this.DurationSeconds = durationSeconds;
@@ -63,7 +65,7 @@ namespace Mochineko.VoiceActivityDetection
             this.Length = span.Length;
 
             this.Buffer = ArrayPool<float>.Shared.Rent(this.Length);
-            span.CopyTo(this.Buffer);
+            span.CopyTo(this.Buffer.AsSpan(0..this.Length));
 
             this.Volume = CalculateVolume(this.Buffer, this.Length);
             this.DurationSeconds = (float)this.Length / frequency / channels;
@@ -94,7 +96,13 @@ namespace Mochineko.VoiceActivityDetection
 
         public void Dispose()
         {
+            if (disposed)
+            {
+                throw new ObjectDisposedException(nameof(VoiceSegment));
+            }
+
             ArrayPool<float>.Shared.Return(Buffer, clearArray: false);
+            disposed = true;
         }
 
         /// <summary>
@@ -120,7 +128,7 @@ namespace Mochineko.VoiceActivityDetection
         public VoiceSegment Copy()
         {
             return new VoiceSegment(
-                this.Buffer.AsSpan(start: 0, Length),
+                this.Buffer.AsSpan(0..this.Length),
                 this.Volume,
                 this.DurationSeconds);
         }

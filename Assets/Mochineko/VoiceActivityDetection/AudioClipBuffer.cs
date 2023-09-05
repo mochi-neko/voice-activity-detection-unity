@@ -49,25 +49,25 @@ namespace Mochineko.VoiceActivityDetection
             this.resetBuffer = new float[maxSampleLength];
         }
 
-        UniTask IVoiceBuffer.BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
+        async UniTask IVoiceBuffer.BufferAsync(VoiceSegment segment, CancellationToken cancellationToken)
         {
+            await UniTask.SwitchToMainThread(cancellationToken);
+
             // NOTE: Copy to new buffer, namely allocated new array.
             var writeBuffer = segment.Buffer.AsSpan(0..segment.Length).ToArray();
 
             this.audioClip.SetData(writeBuffer, offsetSamples: position);
 
             position += segment.Length;
-
-            return UniTask.CompletedTask;
         }
 
-        UniTask IVoiceBuffer.OnVoiceActiveAsync(CancellationToken cancellationToken)
+        async UniTask IVoiceBuffer.OnVoiceActiveAsync(CancellationToken cancellationToken)
         {
+            await UniTask.SwitchToMainThread(cancellationToken);
+
             this.audioClip.SetData(this.resetBuffer, offsetSamples: 0);
 
             position = 0;
-
-            return UniTask.CompletedTask;
         }
 
         UniTask IVoiceBuffer.OnVoiceInactiveAsync(CancellationToken cancellationToken)
