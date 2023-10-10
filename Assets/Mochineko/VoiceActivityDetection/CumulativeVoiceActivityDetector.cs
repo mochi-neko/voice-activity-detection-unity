@@ -30,6 +30,12 @@ namespace Mochineko.VoiceActivityDetection
         private readonly ReactiveProperty<bool> voiceIsActive = new();
         IReadOnlyReactiveProperty<bool> IVoiceActivityDetector.VoiceIsActive => voiceIsActive;
 
+        private readonly Subject<Unit> onVoiceLost = new();
+        /// <summary>
+        /// Event that is raised when short voice is lost.
+        /// </summary>
+        public IObservable<Unit> OnVoiceLost => onVoiceLost;
+
         /// <summary>
         /// Create a new instance of <see cref="CumulativeVoiceActivityDetector"/>.
         /// </summary>
@@ -257,6 +263,7 @@ namespace Mochineko.VoiceActivityDetection
                     {
                         // NOTE: Not effective segments are ignored.
                         Log.Debug("[VAD] Ignored segments: {0}", activeTimeSeconds);
+                        parent.onVoiceLost.OnNext(Unit.Default);
                     }
 
                     // Change to InactivateState
