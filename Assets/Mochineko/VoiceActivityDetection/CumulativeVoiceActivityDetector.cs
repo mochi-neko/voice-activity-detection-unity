@@ -263,6 +263,13 @@ namespace Mochineko.VoiceActivityDetection
                     {
                         // NOTE: Not effective segments are ignored.
                         Log.Debug("[VAD] Ignored segments: {0}", activeTimeSeconds);
+
+                        // Clear queue
+                        while (queue.TryDequeue(out var dequeued))
+                        {
+                            dequeued.Dispose();
+                        }
+
                         parent.onVoiceLost.OnNext(Unit.Default);
                     }
 

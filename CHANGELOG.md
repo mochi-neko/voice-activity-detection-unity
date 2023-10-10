@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2023-10-10
+
+### Fixed
+- Fix remaining queue when short voice is ignored in `CumulativeVoiceActivityDetector`.
+
 ## [0.4.1] - 2023-10-10
 
 ### Added
