@@ -1,49 +1,83 @@
 #nullable enable
 using System;
 using System.IO;
-using System.Threading;
 using UniRx;
 using Unity.Logging;
 using UnityEngine;
 
 namespace Mochineko.VoiceActivityDetection.Components
 {
-    public sealed class VoiceActivityDetector : MonoBehaviour, IWaveStreamReceiver
+    /// <summary>
+    /// A component implementation of IVoiceActivityDetector.
+    /// </summary>
+    public sealed class VoiceActivityDetector
+        : MonoBehaviour, IWaveStreamReceiver
     {
-        [SerializeField]
+        [SerializeField, Tooltip("Source type of voice activity detection.")]
         private SourceType sourceType = SourceType.Microphone;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Buffer type of voice activity detection.")]
         private BufferType bufferType = BufferType.None;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Logic type of voice activity detection.")]
         private LogicType logicType = LogicType.Cumulative;
 
-        [SerializeField]
+        [SerializeField, Tooltip("Parameter set for cumulative logic.")]
         private CumulativeLogicParameters cumulativeLogicParameters = new();
 
-        [SerializeField]
+        [SerializeField, Tooltip("Whether echo voice buffer or not.")]
         private bool echo = false;
 
-        [SerializeField]
+        [SerializeField, Tooltip("[Optional] AudioSource to echo voice buffer.")]
         private AudioSource? echoAudioSource = null;
 
-        [SerializeField]
+        private readonly ReactiveProperty<bool> isActive = new(false);
+
+        /// <summary>
+        /// Reactive property of voice activity.
+        /// </summary>
+        public IReadOnlyReactiveProperty<bool> IsActive => isActive;
+
+        [SerializeField, Tooltip("Called when voice activity has been changed.")]
         private BoolEvent onActive = new();
 
+        /// <summary>
+        /// Called when voice activity has been changed.
+        /// </summary>
         public BoolEvent OnActive => onActive;
 
-        [SerializeField]
+        private readonly Subject<AudioClip> onActiveAudioClipSubject = new();
+
+        /// <summary>
+        /// Observable of AudioClip of active voice.
+        /// </summary>
+        /// <returns></returns>
+        public IObservable<AudioClip> OnActiveAudioClipAsObservable() => onActiveAudioClipSubject;
+
+        [SerializeField, Tooltip("Called when new AudioClip of active voice has been created.")]
         private AudioClipEvent onActiveAudioClip = new();
 
+        /// <summary>
+        /// Called when new AudioClip of active voice has been created.
+        /// </summary>
         public AudioClipEvent OnActiveAudioClip => onActiveAudioClip;
 
-        [SerializeField]
+        private readonly Subject<Stream> onActiveWaveStreamSubject = new();
+
+        /// <summary>
+        /// Observable of Stream of active voice.
+        /// </summary>
+        /// <returns></returns>
+        public IObservable<Stream> OnActiveWaveStreamAsObservable() => onActiveWaveStreamSubject;
+
+        [SerializeField, Tooltip("Called when new Stream of active voice has been created.")]
         private StreamEvent onActiveWaveStream = new();
 
+        /// <summary>
+        /// Called when new Stream of active voice has been created.
+        /// </summary>
         public StreamEvent OnActiveWaveStream => onActiveWaveStream;
 
-        private readonly CancellationTokenSource cancellationTokenSource = new();
         private readonly CompositeDisposable compositeDisposable = new();
 
         private IVoiceActivityDetector? logic = null;
@@ -76,6 +110,7 @@ namespace Mochineko.VoiceActivityDetection.Components
                 .Subscribe(isActive =>
                 {
                     Log.Debug("[VAD.Component] Change voice activity: {0}", isActive);
+                    this.isActive.Value = isActive;
                     onActive.Invoke(isActive);
                 })
                 .AddTo(compositeDisposable);
@@ -83,8 +118,9 @@ namespace Mochineko.VoiceActivityDetection.Components
 
         private void OnDestroy()
         {
-            cancellationTokenSource.Cancel();
-            cancellationTokenSource.Dispose();
+            isActive.Dispose();
+            onActiveAudioClipSubject.Dispose();
+            onActiveWaveStreamSubject.Dispose();
             compositeDisposable.Dispose();
         }
 
@@ -138,6 +174,12 @@ namespace Mochineko.VoiceActivityDetection.Components
                         maxSampleLength: (int)((cumulativeLogicParameters.MaxCumulatedTimeSeconds + 1f) *
                                                source.SamplingRate),
                         frequency: source.SamplingRate);
+
+                    audioClipBuffer
+                        .OnVoiceInactive
+                        .Subscribe(onActiveAudioClipSubject)
+                        .AddTo(compositeDisposable);
+
                     audioClipBuffer
                         .OnVoiceInactive
                         .Subscribe(clip =>
@@ -148,6 +190,7 @@ namespace Mochineko.VoiceActivityDetection.Components
                             PlayEchoAudioClip(clip);
                         })
                         .AddTo(compositeDisposable);
+
                     return audioClipBuffer;
 
                 case BufferType.WaveFileStream:
@@ -213,6 +256,7 @@ namespace Mochineko.VoiceActivityDetection.Components
         void IWaveStreamReceiver.OnReceive(Stream stream)
         {
             Log.Debug("[VAD.Component] Publish WaveStream of buffered voice.");
+            onActiveWaveStreamSubject.OnNext(stream);
             onActiveWaveStream.Invoke(stream);
         }
     }
