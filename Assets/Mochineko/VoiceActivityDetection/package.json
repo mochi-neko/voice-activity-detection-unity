@@ -13,6 +13,6 @@
     "url": "git+ssh://git@github.com:mochi-neko/voice-activity-detection-unity.git"
   },
   "dependencies": {
-    "com.unity.logging": "1.0.11"
+    "com.unity.logging": "1.0.16"
   }
 }
